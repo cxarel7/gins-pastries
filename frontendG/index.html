@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+  <link rel="stylesheet" href="design.css">
+</head>
+<body>
+
+    <div class="container">
+
+        <img src="coki.jpg" alt="coki">
+
+        <main class="card">
+
+            <form id="loginForm" novalidate>
+            <h2>Welcome to Gin's Pastries</h2>
+            <p class="subtitle">Sign in to your account</p>
+
+            <label for="email">Email</label>
+            <input type="email" id="email" autocomplete="email">
+
+            <label for="password">Password</label>
+            <input type="password" id="password" autocomplete="current-password">
+
+            <div class="row-between">
+              <label class="show-password">
+                <input type="checkbox" id="showPassword">
+                Show Password
+              </label>
+              <a href="#" id="forgotLink" class="forgot">Forgot password?</a>
+            </div>
+
+            <button type="submit" id="loginBtn">Login</button>
+            <p id="message" role="alert" aria-live="polite"></p>
+            <p>Don't have an account? <a href="#" id="showRegister">Register</a></p>
+            </form>
+
+            <form id="registerForm" class="hidden" novalidate>
+            <h2>Create Account</h2>
+
+            <label for="name">Name</label>
+            <input type="text" id="name" autocomplete="name">
+
+            <label for="regEmail">Email</label>
+            <input type="email" id="regEmail" autocomplete="email">
+
+            <label for="regPassword">Password</label>
+            <input type="password" id="regPassword" autocomplete="new-password">
+            <label class="show-password">
+            <input type="checkbox" id="showRegPassword">
+            Show Password
+            </label>
+
+            <button type="submit" id="registerBtn">Register</button>
+            <p id="registerMessage" role="alert" aria-live="polite"></p>
+
+            <button type="button" id="backBtn" class="back-btn">
+            ← Back to Login
+            </button>
+            </form>
+        </main>
+
+    </div>
+
+  <script src="config.js"></script>
+  <script src="auth.js"></script>
+  <script src="Script.js"></script>
+</body>
+</html>

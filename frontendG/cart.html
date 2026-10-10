@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>cart</title>
+    <link rel="stylesheet" href="C-Page.css">
+</head>
+<body>
+
+    <header class="PageHeader">
+
+        <div class="title1">
+          <div class="prof"><img src="" alt="profile" class="hb"></div>
+          <div class="title2">
+            <h1>Gins Pastries</h1>
+            <p id="welcome">Loading...</p>
+            </div>
+        </div>
+
+         <nav class="navi">
+            <ul class="subnavi">
+                <li><a href="customerpage.html" class="nav-link">Home</a></li>
+                <li><a href="cart.html" class="nav-link">Cart</a></li>
+                <li><a href="orders.html" class="nav-link active">Order Status</a></li>
+                <li><a href="#" id="logoutBtn" class="nav-link nav-logout">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <h1 class="cart">Cart</h1>
+    <div class="ContainerCart">
+        <div class="products">
+            <div class="cartheader">
+                <h3>No.</h3>
+                <h3>Product</h3>
+                <h3>Unit Price</h3>
+                <h3>Quantity</h3>
+                <h3>Total</h3>
+                <h3>Action</h3>
+            </div>
+
+            <div id="cartItems"></div>
+        </div>
+
+        <div class="pickup">
+            <h2>pickup time:</h2>
+
+            <label class="pk-label" for="pickupDate">Date</label>
+            <input type="date" id="pickupDate" class="pk-input">
+
+            <label class="pk-label" for="pickupTime">Time</label>
+            <input type="time" id="pickupTime" class="pk-input">
+
+            <h2 class="pk-total">Total: <span id="cartTotal">₱0</span></h2>
+
+            <button id="checkoutBtn">Check Out</button>
+            <div id="cartMessage" role="alert" aria-live="polite"></div>
+        </div>
+    </div>
+
+<script src="config.js"></script>
+<script src="auth.js"></script>
+<script src="toast.js"></script>
+<script src="cartstore.js"></script>
+<script src="customer.js"></script>
+<script src="profile.js"></script>
+<script src="cart.js"></script>
+<script src="notify.js"></script>
+</body>
+</html>

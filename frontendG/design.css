@@ -1,0 +1,200 @@
+* {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    font-family: "Comic Sans MS", cursive;
+}
+
+body {
+    min-height: 100vh;
+}
+
+.container {
+    display: flex;
+    width: 100%;
+    min-height: 100vh;
+    align-items: center;
+}
+
+/* LEFT SIDE */
+.container img {
+    width: 60%;
+    height: 100vh;
+    object-fit: cover;
+}
+
+/* RIGHT SIDE */
+.card {
+    max-width: 450px;
+    margin: auto;
+    padding: 32px;
+    background: rgb(237, 176, 251);
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, .10);
+}
+
+h1,
+h2 {
+    margin-top: 0;
+}
+
+.subtitle {
+    color: #666;
+}
+
+label {
+    display: block;
+    margin: 14px 0 6px;
+}
+
+input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+input:focus {
+    outline: none;
+    border-color: #8c118c;
+    box-shadow: 0 0 0 3px rgba(140, 17, 140, 0.18);
+}
+
+button {
+    width: 100%;
+    margin-top: 18px;
+    padding: 12px;
+    border: 0;
+    border-radius: 6px;
+    background: #8c118c;
+    color: white;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+}
+
+button:hover {
+    opacity: .9;
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+.hidden {
+    display: none;
+}
+
+.back-btn {
+    width: auto;
+    padding: 10px 18px;
+    border: none;
+    border-radius: 20px;
+    background: #8c118c;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    margin-bottom: 15px;
+}
+
+.show-password {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.show-password input {
+    width: auto;
+    cursor: pointer;
+}
+
+/* ---------- Additions for this step ---------- */
+.row-between {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.forgot {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #510087;
+}
+
+.card a {
+    color: #510087;
+    font-weight: bold;
+}
+
+/* Spinner inside a loading button */
+.btn-loading {
+    opacity: .85;
+    cursor: wait;
+}
+
+.btn-loading::after {
+    content: "";
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    margin-left: 8px;
+    border: 2px solid rgba(255, 255, 255, .5);
+    border-top-color: #fff;
+    border-radius: 50%;
+    vertical-align: middle;
+    animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Message boxes */
+#message,
+#registerMessage {
+    margin-top: 12px;
+    min-height: 20px;
+}
+
+.msg-box {
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    border-left: 5px solid;
+    animation: msgIn 0.25s ease;
+}
+
+.msg-error   { background: #fde4e2; color: #b3261e; border-color: #b3261e; }
+.msg-success { background: #dff5e7; color: #1f6b3d; border-color: #1f8a4c; }
+.msg-warning { background: #fff1d6; color: #8a5200; border-color: #d98a00; }
+.msg-info    { background: #efe0ff; color: #510087; border-color: #8c118c; }
+
+@keyframes msgIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .msg-box, .btn-loading::after { animation: none; }
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+    }
+
+    .container img {
+        width: 100%;
+        height: 300px;
+    }
+
+    .card {
+        width: 90%;
+        margin: 30px auto;
+    }
+}

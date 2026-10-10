@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Gin's Pastries</title>
+    <link rel="stylesheet" href="C-Page.css">
+</head>
+<body>
+
+    <header class="PageHeader">
+        <div class="title1">
+          <div class="prof"><img src="" alt="profile" class="hb"></div>
+          <div class="title2">
+            <h1>Gins Pastries</h1>
+            <p id="welcome">Loading...</p>
+          </div>
+        </div>
+
+        <nav class="navi">
+            <ul class="subnavi">
+                <li><a href="#dashboard" class="nav-link" data-view="dashboard">Dashboard</a></li>
+                <li><a href="#cookies" class="nav-link" data-view="cookies">Cookies</a></li>
+                <li><a href="#orders" class="nav-link" data-view="orders">Orders</a></li>
+                <li><a href="#" id="logoutBtn" class="nav-link nav-logout">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="ad-wrap">
+
+        <!-- ============ DASHBOARD ============ -->
+        <section class="ad-view" id="view-dashboard">
+
+            <h1 class="ad-title">Sales and Inventory Dashboard</h1>
+        
+            <div class="ad-filter">
+                <div class="ad-field">
+                    <span>1. Report period</span>
+                    <select id="adRange">
+                        <option value="today">Today</option>
+                        <option value="week">This week</option>
+                        <option value="month" selected>This month</option>
+                        <option value="year">This year</option>
+                        <option value="custom">Custom range</option>
+                    </select>
+                    <small>Which dates the sales figures cover.</small>
+                </div>
+                <div class="ad-field ad-custom hidden-ad">
+                    <span>From date</span><input type="date" id="adFrom">
+                    <small>First day to include.</small>
+                </div>
+                <div class="ad-field ad-custom hidden-ad">
+                    <span>To date</span><input type="date" id="adTo">
+                    <small>Last day to include.</small>
+                </div>
+                <div class="ad-field">
+                    <span>2. Group the chart by</span>
+                    <select id="adGroup">
+                        <option value="daily" selected>Daily</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="monthly">Monthly</option>
+                        <option value="yearly">Yearly</option>
+                    </select>
+                  
+                </div>
+                <div class="ad-field ad-apply-field">
+                    <button type="button" class="ad-btn" id="adApply">Apply</button>
+            
+                </div>
+            </div>
+            <div class="ad-note" id="adRangeNote"></div>
+
+            <div class="ad-cards-big" id="adCardsBig"></div>
+            <div class="ad-cards-small" id="adCardsSmall"></div>
+
+            <div class="ad-grid">
+                <div class="ad-panel">
+                    <h3>Top-selling cookies</h3>
+                
+                    <div id="adTop"></div>
+                </div>
+                <div class="ad-panel">
+                    <h3>Stock alerts</h3>
+                    
+                    <div id="adStock"></div>
+                </div>
+            </div>
+
+            <div class="ad-panel">
+                <h3>Sales trend</h3>
+            
+                <div id="adChart"></div>
+            </div>
+        </section>
+
+        <!-- ============ COOKIES ============ -->
+        <section class="ad-view" id="view-cookies">
+            <h1 class="ad-title">Cookie Inventory</h1>
+    
+            <div class="ck-bar">
+                <div class="ck-tabs" id="ckTabs">
+                    <button type="button" data-filter="all" class="active">All</button>
+                    <button type="button" data-filter="low">Low stock</button>
+                    <button type="button" data-filter="out">Out of stock</button>
+                    <button type="button" data-filter="archived">Archived</button>
+                </div>
+                <button type="button" class="ad-btn" id="ckAdd">+ Add cookie</button>
+            </div>
+            <div class="ad-note" id="ckSummary"></div>
+
+            <div class="ad-panel"><div id="ckList"></div></div>
+        </section>
+
+        <!-- ============ ORDERS ============ -->
+        <section class="ad-view" id="view-orders">
+            <h1 class="ad-title">Customer Orders</h1>
+
+            <div class="ck-bar">
+                <div class="ck-tabs" id="orTabs">
+                    <button type="button" data-filter="" class="active">All</button>
+                    <button type="button" data-filter="Pending">Pending</button>
+                    <button type="button" data-filter="Confirmed">Confirmed</button>
+                    <button type="button" data-filter="Preparing">Preparing</button>
+                    <button type="button" data-filter="Ready">Ready</button>
+                    <button type="button" data-filter="Completed">Completed</button>
+                    <button type="button" data-filter="Cancelled">Cancelled</button>
+                </div>
+            </div>
+            <div class="ad-note" id="orSummary"></div>
+
+            <div id="orList"></div>
+        </section>
+
+    </div>
+
+<script src="config.js"></script>
+<script src="auth.js"></script>
+<script src="toast.js"></script>
+<script src="admin.js"></script>
+<script src="cookies.js"></script>
+<script src="adminorders.js"></script>
+<script src="profile.js"></script>
+</body>
+</html>
