@@ -3,8 +3,8 @@ const pool = require('./db');
 require('dotenv').config();
 
 async function seedAdmin() {
-  const firstName = process.env.ADMIN_FIRST_NAME || 'Wilgin';
-  const lastName = process.env.ADMIN_LAST_NAME || 'Oraye';
+const firstName = process.env.ADMIN_FIRST_NAME || 'Admin';
+const lastName = process.env.ADMIN_LAST_NAME || 'User';
   const email = (process.env.ADMIN_EMAIL || '').trim().toLowerCase();
   const password = process.env.ADMIN_PASSWORD || '';
 
