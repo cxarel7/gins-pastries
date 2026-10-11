@@ -1,4 +1,6 @@
-   node_modules
-   .env
-   *.log*.lnk
+node_modules
+.env
+*.log
 *.lnk
+.env.*
+!.env.example
