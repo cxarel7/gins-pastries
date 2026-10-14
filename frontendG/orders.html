@@ -3,42 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Order Status</title>
+    <title>Order Status - Gin's Pastries</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap">
     <link rel="stylesheet" href="C-Page.css">
 </head>
 <body>
 
-    <header class="PageHeader">
-        <div class="title1">
-          <div class="prof"><img src="" alt="profile" class="hb"></div>
-          <div class="title2">
-            <h1>Gins Pastries</h1>
-            <p id="welcome">Loading...</p>
-          </div>
-        </div>
-
-        <nav class="navi">
-            <ul class="subnavi">
-                <li><a href="customerpage.html" class="nav-link">Home</a></li>
-                <li><a href="cart.html" class="nav-link">Cart</a></li>
-                <li><a href="orders.html" class="nav-link active">Order Status</a></li>
-                <li><a href="#" id="logoutBtn" class="nav-link nav-logout">Logout</a></li>
-            </ul>
-        </nav>
-    </header>
+    <header class="PageHeader sh" id="siteHeader"></header>
 
     <div class="orders-wrap">
         <h1 class="cart">Order Status</h1>
         <div id="ordersList"></div>
     </div>
 
+    <footer id="siteFooter"></footer>
+
 <script src="config.js"></script>
 <script src="auth.js"></script>
 <script src="toast.js"></script>
 <script src="cartstore.js"></script>
+<script src="header.js"></script>
 <script src="customer.js"></script>
+<script src="notify.js"></script>
 <script src="profile.js"></script>
 <script src="orders.js"></script>
-<script src="notify.js"></script>
+<script src="footer.js"></script>
 </body>
 </html>

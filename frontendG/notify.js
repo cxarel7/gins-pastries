@@ -2,13 +2,11 @@
   const user = Auth.user();
   if (!user || user.role !== "customer") return;
 
-  const nav = document.querySelector(".subnavi");
-  const logoutLi = document.getElementById("logoutBtn")
-    ? document.getElementById("logoutBtn").closest("li") : null;
-  if (!nav) return;
+  const mount = document.getElementById("headerBell");
+  if (!mount) return;
 
   // ----- Build the bell -----
-  const li = document.createElement("li");
+  const li = document.createElement("div");
   li.className = "nt-wrap";
   li.innerHTML = `
     <button type="button" class="nt-bell" id="ntBell" aria-label="Notifications" aria-haspopup="true" aria-expanded="false">
@@ -24,7 +22,7 @@
       </div>
       <div class="nt-list" id="ntList"></div>
     </div>`;
-  if (logoutLi) nav.insertBefore(li, logoutLi); else nav.appendChild(li);
+  mount.appendChild(li);
 
   const $ = (id) => document.getElementById(id);
   let items = [];
@@ -55,7 +53,7 @@
     if (items.length === 0) {
       const e = document.createElement("div");
       e.className = "nt-empty";
-      e.textContent = "No notifications yet. We'll tell you when your order status changes.";
+      e.textContent = "No notifications yet. We'll tell you about new cookies, price changes, and your order updates.";
       list.replaceChildren(e);
       return;
     }
@@ -74,7 +72,8 @@
       msg.textContent = n.message;
       const meta = document.createElement("span");
       meta.className = "nt-meta";
-      meta.textContent = (n.order_id ? `Order #${n.order_id}  |  ` : "") + ago(n.created_at);
+      const tag = n.order_id ? `Order #${n.order_id}  |  ` : (n.product_id ? "Cookie  |  " : "");
+      meta.textContent = tag + ago(n.created_at);
       body.append(msg, meta);
       row.append(dot, body);
 
@@ -107,8 +106,19 @@
       renderBadge(); renderList();
       Auth.api(`/api/notifications/${n.notification_id}/read`, { method: "PUT" });
     }
-    if (n.order_id) location.href = `orders.html#order-${n.order_id}`;
-    else setOpen(false);
+    if (n.product_id) {
+      const target = `products.html#cookie-${n.product_id}`;
+      if (location.pathname.toLowerCase().endsWith("/products.html")) {
+        location.hash = `cookie-${n.product_id}`;
+        setOpen(false);
+      } else {
+        location.href = target;
+      }
+    } else if (n.order_id) {
+      location.href = `orders.html#order-${n.order_id}`;
+    } else {
+      setOpen(false);
+    }
   }
 
   $("ntReadAll").addEventListener("click", async () => {

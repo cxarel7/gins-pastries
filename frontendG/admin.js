@@ -2,17 +2,6 @@
   const user = Auth.require("admin");
   if (!user) return;
 
-  // ---------- Header ----------
-  document.getElementById("welcome").textContent = `Admin: ${user.first_name || user.name}`;
-  document.getElementById("logoutBtn").addEventListener("click", (e) => { e.preventDefault(); Auth.logout(); });
-
-  const AVATAR = "data:image/svg+xml;utf8," + encodeURIComponent(
-    "<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'>" +
-    "<rect width='100' height='100' fill='#510087'/>" +
-    "<circle cx='50' cy='38' r='18' fill='#d1a3fd'/>" +
-    "<path d='M15 95c0-22 15-35 35-35s35 13 35 35z' fill='#d1a3fd'/></svg>");
-  document.querySelectorAll(".hb").forEach((img) => { img.src = AVATAR; });
-
   // ---------- Views (no page reload) ----------
   const VIEWS = ["dashboard", "cookies", "orders"];
   function showView(name) {
@@ -64,26 +53,30 @@
   }
 
   // ---------- Renderers ----------
+  const STOCK_LOW = "dashboard.html?filter=low#cookies";
+  const STOCK_OUT = "dashboard.html?filter=out#cookies";
+  const STOCK_ALL = "dashboard.html?filter=alerts#cookies";
+
   function renderCards(d) {
-    const makeCard = ([label, value, cls]) => {
-      const c = el("div", "ad-card " + cls);
+    // [label, value, extra class, link (optional)]
+    const makeCard = ([label, value, cls, href]) => {
+      const c = el(href ? "a" : "div", "ad-card " + cls + (href ? " ad-card-link" : ""));
+      if (href) { c.href = href; c.title = "Open the stock page"; }
       c.append(el("div", "ad-card-label", label), el("div", "ad-card-value", String(value)));
       return c;
     };
 
-    // Big cards
     $("adCardsBig").replaceChildren(...[
       ["Total Sales", peso(d.total_sales), ""],
       ["Total Orders", d.total_orders, ""],
       ["Pending Orders", d.pending_orders, d.pending_orders > 0 ? "warn" : ""]
     ].map(makeCard));
 
-    // Smaller cards (all the same size)
     $("adCardsSmall").replaceChildren(...[
       ["Cookies Sold", d.cookies_sold, ""],
       ["Completed Orders", d.completed_orders, ""],
-      ["Low Stock", d.low_stock, d.low_stock > 0 ? "warn" : ""],
-      ["Out of Stock", d.out_of_stock, d.out_of_stock > 0 ? "danger" : ""]
+      ["Low Stock", d.low_stock, d.low_stock > 0 ? "warn" : "", STOCK_LOW],
+      ["Out of Stock", d.out_of_stock, d.out_of_stock > 0 ? "danger" : "", STOCK_OUT]
     ].map(makeCard));
 
     $("adRangeNote").textContent =
@@ -108,9 +101,11 @@
     }));
   }
 
-  function stockList(title, items, fmt, cls) {
+  function stockList(title, items, fmt, cls, href) {
     const wrap = el("div", "ad-stock-group");
-    wrap.appendChild(el("div", "ad-stock-title " + cls, `${title} (${items.length})`));
+    const t = el("a", "ad-stock-title " + cls, `${title} (${items.length})`);
+    t.href = href;
+    wrap.appendChild(t);
     if (items.length === 0) wrap.appendChild(el("div", "ad-muted", "None. All good!"));
     items.forEach((p) => wrap.appendChild(el("div", "ad-stock-item", fmt(p))));
     return wrap;
@@ -119,9 +114,17 @@
   function renderStock(lowRes, outRes) {
     const box = $("adStock");
     if (!lowRes.ok || !outRes.ok) return note(box, "Could not load the stock alerts.");
+    const low = lowRes.data.products;
+    const out = outRes.data.products;
+    const need = low.length + out.length;
+
+    const link = el("a", "ad-btn ad-link-btn", need > 0 ? `Open stock page (${need} need attention)` : "Open stock page");
+    link.href = STOCK_ALL;
+
     box.replaceChildren(
-      stockList("Low stock", lowRes.data.products, (p) => `${p.product_name}: ${p.stock_quantity} left`, "low"),
-      stockList("Out of stock", outRes.data.products, (p) => p.product_name, "out")
+      stockList("Low stock", low, (p) => `${p.product_name}: ${p.stock_quantity} left`, "low", STOCK_LOW),
+      stockList("Out of stock", out, (p) => p.product_name, "out", STOCK_OUT),
+      link
     );
   }
 
@@ -172,7 +175,7 @@
     $("adApply").disabled = false;
 
     if (!dash.ok) {
-        $("adCardsBig").replaceChildren();
+      $("adCardsBig").replaceChildren();
       $("adCardsSmall").replaceChildren();
       $("adRangeNote").textContent = "";
       ["adTop", "adStock", "adChart"].forEach((id) => note($(id), ""));

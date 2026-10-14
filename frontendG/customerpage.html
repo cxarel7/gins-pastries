@@ -2,49 +2,41 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Customer Page</title>  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gin's Pastries</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap">
     <link rel="stylesheet" href="C-Page.css">
 </head>
 <body>
-    
-   <header class="PageHeader">
 
-        <div class="title1">
-          <div class="prof"><img src="" alt="profile" class="hb"></div>
-          <div class="title2">
-            <h1>Gins Pastries</h1>
-            <p id="welcome">Loading...</p>
+   <header class="PageHeader sh" id="siteHeader"></header>
+
+    <main class="gp-main">
+        <section class="hero">
+            <div class="hero-text">
+                <p class="hero-kicker">Gin's Pastries Decadent Moist Cookies</p>
+                <h2 class="hero-title">Indulge in the sweetness of mouthwatering, freshly baked cookies.</h2>
+                <a class="hero-btn" href="#newest">What's New?</a>
             </div>
-        </div>
+            <img class="hero-img" src="koki1.png" alt="Freshly baked chocolate chip cookies">
+        </section>
 
-            <nav class="navi">
-            <ul class="subnavi">
-                <li><a href="customerpage.html" class="nav-link">Home</a></li>
-                <li><a href="cart.html" class="nav-link">Cart</a></li>
-                <li><a href="orders.html" class="nav-link active">Order Status</a></li>
-                <li><a href="#" id="logoutBtn" class="nav-link nav-logout">Logout</a></li>
-            </ul>
-        </nav>
-    </header>
+        <h2 class="gp-title" id="newest">Newest Flavor</h2>
+        <div class="gp-grid" id="newestCookies"></div>
+    </main>
 
-
-
-    <div class="containerkoki">
-        <h3 id="bestSellingTitle">Best Selling Cookies</h3>
-        <div class="BSCookies" id="bestSelling"></div>
-
-        <h3>All Available Cookies</h3>
-        <div class="allkoki" id="allCookies"></div>
-    </div>
+    <footer id="siteFooter"></footer>
 
 <script src="config.js"></script>
 <script src="auth.js"></script>
 <script src="toast.js"></script>
 <script src="cartstore.js"></script>
+<script src="header.js"></script>
 <script src="customer.js"></script>
-<script src="profile.js"></script>
-<script src="shop.js"></script>
 <script src="notify.js"></script>
+<script src="profile.js"></script>
+<script src="cookiecard.js"></script>
+<script src="home.js"></script>
+<script src="footer.js"></script>
 </body>
 </html>

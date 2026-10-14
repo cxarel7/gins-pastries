@@ -84,7 +84,9 @@
 
     const total = el("div", "ord-total", `Total: ${peso(o.total_amount)}`);
 
-    div.append(top, who, info, list, total);
+       div.append(top, who, info);
+    if (o.payment_reference) div.appendChild(el("div", "ord-info", `GCash reference: ${o.payment_reference}`));
+    div.append(list, total);
 
     if (o.status === "Cancelled" && o.cancel_reason) {
       div.appendChild(el("div", "ord-cancel-note", `Cancelled. Reason: ${o.cancel_reason}`));

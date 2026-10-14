@@ -8,24 +8,7 @@
 </head>
 <body>
 
-    <header class="PageHeader">
-        <div class="title1">
-          <div class="prof"><img src="" alt="profile" class="hb"></div>
-          <div class="title2">
-            <h1>Gins Pastries</h1>
-            <p id="welcome">Loading...</p>
-          </div>
-        </div>
-
-        <nav class="navi">
-            <ul class="subnavi">
-                <li><a href="#dashboard" class="nav-link" data-view="dashboard">Dashboard</a></li>
-                <li><a href="#cookies" class="nav-link" data-view="cookies">Cookies</a></li>
-                <li><a href="#orders" class="nav-link" data-view="orders">Orders</a></li>
-                <li><a href="#" id="logoutBtn" class="nav-link nav-logout">Logout</a></li>
-            </ul>
-        </nav>
-    </header>
+    <header class="PageHeader sh" id="siteHeader"></header>
 
     <div class="ad-wrap">
 
@@ -33,7 +16,6 @@
         <section class="ad-view" id="view-dashboard">
 
             <h1 class="ad-title">Sales and Inventory Dashboard</h1>
-        
             <div class="ad-filter">
                 <div class="ad-field">
                     <span>1. Report period</span>
@@ -44,7 +26,6 @@
                         <option value="year">This year</option>
                         <option value="custom">Custom range</option>
                     </select>
-                    <small>Which dates the sales figures cover.</small>
                 </div>
                 <div class="ad-field ad-custom hidden-ad">
                     <span>From date</span><input type="date" id="adFrom">
@@ -55,18 +36,16 @@
                     <small>Last day to include.</small>
                 </div>
                 <div class="ad-field">
-                    <span>2. Group the chart by</span>
+                    <span>Group the chart by</span>
                     <select id="adGroup">
                         <option value="daily" selected>Daily</option>
                         <option value="weekly">Weekly</option>
                         <option value="monthly">Monthly</option>
                         <option value="yearly">Yearly</option>
                     </select>
-                  
                 </div>
                 <div class="ad-field ad-apply-field">
                     <button type="button" class="ad-btn" id="adApply">Apply</button>
-            
                 </div>
             </div>
             <div class="ad-note" id="adRangeNote"></div>
@@ -77,19 +56,19 @@
             <div class="ad-grid">
                 <div class="ad-panel">
                     <h3>Top-selling cookies</h3>
-                
+                    <p class="ad-help">Ranked by cookies sold in the chosen period, with the revenue each one earned.</p>
                     <div id="adTop"></div>
                 </div>
                 <div class="ad-panel">
                     <h3>Stock alerts</h3>
-                    
+                    <p class="ad-help">Cookies that need restocking. Click to open the stock page.</p>
                     <div id="adStock"></div>
                 </div>
             </div>
 
             <div class="ad-panel">
                 <h3>Sales trend</h3>
-            
+                <p class="ad-help">Total completed sales over time. Each bar is one day, week, month, or year, depending on "Group the chart by". Hover a bar to see its orders.</p>
                 <div id="adChart"></div>
             </div>
         </section>
@@ -97,15 +76,21 @@
         <!-- ============ COOKIES ============ -->
         <section class="ad-view" id="view-cookies">
             <h1 class="ad-title">Cookie Inventory</h1>
-    
+            <p class="ad-sub">Manage your finished cookies: prices, stock, and what customers can see. Archived cookies are hidden from customers.</p>
+
             <div class="ck-bar">
                 <div class="ck-tabs" id="ckTabs">
                     <button type="button" data-filter="all" class="active">All</button>
+                    <button type="button" data-filter="alerts">Needs attention</button>
                     <button type="button" data-filter="low">Low stock</button>
                     <button type="button" data-filter="out">Out of stock</button>
                     <button type="button" data-filter="archived">Archived</button>
                 </div>
                 <button type="button" class="ad-btn" id="ckAdd">+ Add cookie</button>
+            </div>
+
+            <div class="ck-search">
+                <input type="search" id="ckSearch" placeholder="Search cookies by name" maxlength="100" aria-label="Search cookies by name">
             </div>
             <div class="ad-note" id="ckSummary"></div>
 
@@ -137,9 +122,11 @@
 <script src="config.js"></script>
 <script src="auth.js"></script>
 <script src="toast.js"></script>
+<script src="header.js"></script>
 <script src="admin.js"></script>
 <script src="cookies.js"></script>
 <script src="adminorders.js"></script>
+<script src="dashcustomers.js"></script>
 <script src="profile.js"></script>
 </body>
 </html>

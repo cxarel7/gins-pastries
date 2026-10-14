@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customers - Gin's Pastries</title>
+    <link rel="stylesheet" href="C-Page.css">
+</head>
+<body>
+
+    <header class="PageHeader sh" id="siteHeader"></header>
+
+    <div class="ad-wrap">
+        <h1 class="ad-title">Customer Information</h1>
+        <p class="ad-sub">Registered customers. Search by name, email, or mobile number, and open a customer to see their orders.</p>
+
+        <div class="ad-filter cs-filter">
+            <div class="ad-field">
+                <span>Search</span>
+                <input type="search" id="csSearch" placeholder="Name, email, or mobile number" maxlength="100">
+                <small>Results update as you type.</small>
+            </div>
+            <div class="ad-field">
+                <span>Sort by</span>
+                <select id="csSort">
+                    <option value="newest" selected>Newest first</option>
+                    <option value="oldest">Oldest first</option>
+                    <option value="name">Name (A to Z)</option>
+                    <option value="orders">Most orders</option>
+                </select>
+                <small>How the list is ordered.</small>
+            </div>
+        </div>
+        <div class="ad-note" id="csSummary"></div>
+
+        <div class="ad-panel">
+            <div id="csList"></div>
+            <div class="cs-pager" id="csPager"></div>
+        </div>
+    </div>
+
+<script src="config.js"></script>
+<script src="auth.js"></script>
+<script src="toast.js"></script>
+<script src="header.js"></script>
+<script src="customers.js"></script>
+<script src="profile.js"></script>
+</body>
+</html>

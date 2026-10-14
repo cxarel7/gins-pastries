@@ -6,7 +6,8 @@ const { verifyToken } = require('../middleware/auth');
 const router = express.Router();
 router.use(verifyToken);
 
-const COLS = 'user_id, first_name, last_name, name, contact, email, role, created_at';
+const COLS = 'user_id, first_name, last_name, name, contact, facebook, email, role, created_at';
+const PHONE_REGEX = /^(09\d{9}|\+639\d{9})$/;
 
 // GET /api/me  (only the logged-in person's own info)
 router.get('/', async (req, res) => {
@@ -20,13 +21,14 @@ router.get('/', async (req, res) => {
   }
 });
 
-// PUT /api/me  body: { first_name, last_name, contact }
+// PUT /api/me  body: { first_name, last_name, contact, facebook }
 router.put('/', async (req, res) => {
   try {
     const b = req.body || {};
     const firstName = String(b.first_name || '').trim();
     const lastName = String(b.last_name || '').trim();
-    const contact = String(b.contact || '').trim();
+    const contact = String(b.contact || '').replace(/[\s-]/g, '');
+    const facebook = String(b.facebook || '').trim();
 
     if (!firstName || !lastName) {
       return res.status(400).json({ error: 'First name and last name are required.' });
@@ -34,13 +36,16 @@ router.put('/', async (req, res) => {
     if (firstName.length > 50 || lastName.length > 50) {
       return res.status(400).json({ error: 'First and last name must be 50 characters or less.' });
     }
-    if (contact.length < 5 || contact.length > 100) {
-      return res.status(400).json({ error: 'Contact must be 5 to 100 characters (phone number or Facebook account).' });
+    if (!PHONE_REGEX.test(contact)) {
+      return res.status(400).json({ error: 'Please enter a valid mobile number (09XXXXXXXXX or +639XXXXXXXXX).' });
+    }
+    if (facebook && (facebook.length < 3 || facebook.length > 150)) {
+      return res.status(400).json({ error: 'Facebook account must be 3 to 150 characters.' });
     }
 
     await pool.query(
-      'UPDATE users SET first_name = ?, last_name = ?, contact = ? WHERE user_id = ?',
-      [firstName, lastName, contact, req.user.user_id]
+      'UPDATE users SET first_name = ?, last_name = ?, name = ?, contact = ?, facebook = ? WHERE user_id = ?',
+      [firstName, lastName, `${firstName} ${lastName}`, contact, facebook || null, req.user.user_id]
     );
 
     const [rows] = await pool.query(`SELECT ${COLS} FROM users WHERE user_id = ?`, [req.user.user_id]);

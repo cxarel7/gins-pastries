@@ -29,6 +29,9 @@ const NOTIFY = {
   Cancelled: (id, reason) => `Your order #${id} has been cancelled. Reason: ${reason}. Please contact the seller for clarification.`
 };
 
+const CUSTOMER_COLS =
+  'u.name AS customer_name, u.email AS customer_email, u.contact AS customer_contact, u.facebook AS customer_facebook';
+
 function parseId(value) {
   const id = Number(value);
   return Number.isInteger(id) && id > 0 ? id : null;
@@ -79,8 +82,7 @@ router.post('/orders', verifyToken, async (req, res) => {
     return res.status(403).json({ error: 'Only customers can place orders.' });
   }
 
-  const { pickup_date, pickup_time, items } = req.body || {};
-
+    const { pickup_date, pickup_time, items, payment_reference } = req.body || {};
   if (!pickup_date || !pickup_time) {
     return res.status(400).json({ error: 'Pickup date and pickup time are required.' });
   }
@@ -96,6 +98,11 @@ router.post('/orders', verifyToken, async (req, res) => {
   const now = nowInManila();
   if (pDate < now.date || (pDate === now.date && pTime <= now.time)) {
     return res.status(400).json({ error: 'Pickup date and time must be in the future.' });
+  }
+
+    const payRef = String(payment_reference || '').trim();
+  if (!/^\d{10,13}$/.test(payRef)) {
+    return res.status(400).json({ error: 'Please enter your reference number (10 to 13 digits).' });
   }
 
   if (!Array.isArray(items) || items.length === 0) {
@@ -161,9 +168,9 @@ router.post('/orders', verifyToken, async (req, res) => {
     total = Math.round(total * 100) / 100;
 
     const [orderResult] = await conn.query(
-      `INSERT INTO orders (user_id, pickup_date, pickup_time, total_amount, status)
-       VALUES (?, ?, ?, ?, 'Pending')`,
-      [req.user.user_id, pDate, `${pTime}:00`, total]
+        `INSERT INTO orders (user_id, pickup_date, pickup_time, total_amount, payment_reference, status)
+       VALUES (?, ?, ?, ?, ?, 'Pending')`,
+      [req.user.user_id, pDate, `${pTime}:00`, total, payRef]
     );
     const orderId = orderResult.insertId;
 
@@ -185,6 +192,9 @@ router.post('/orders', verifyToken, async (req, res) => {
     res.status(201).json({ message: 'Order placed.', order });
   } catch (err) {
     await conn.rollback();
+        if (err.code === 'ER_DUP_ENTRY') {
+      return res.status(409).json({ error: 'That reference number was already used for another order.' });
+    }
     console.error('Place order error:', err);
     res.status(500).json({ error: 'Server error. Please try again.' });
   } finally {
@@ -222,7 +232,7 @@ router.get('/orders', verifyToken, requireAdmin, async (req, res) => {
     }
 
     const [orders] = await pool.query(
-      `SELECT o.*, u.name AS customer_name, u.email AS customer_email, u.contact AS customer_contact
+      `SELECT o.*, ${CUSTOMER_COLS}
        FROM orders o
        JOIN users u ON u.user_id = o.user_id
        ${where}
@@ -243,7 +253,7 @@ router.get('/orders/:id', verifyToken, async (req, res) => {
     if (!id) return res.status(400).json({ error: 'Invalid order ID.' });
 
     const [orders] = await pool.query(
-      `SELECT o.*, u.name AS customer_name, u.email AS customer_email, u.contact AS customer_contact
+      `SELECT o.*, ${CUSTOMER_COLS}
        FROM orders o
        JOIN users u ON u.user_id = o.user_id
        WHERE o.order_id = ?`,

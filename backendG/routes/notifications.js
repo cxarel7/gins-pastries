@@ -14,7 +14,7 @@ function parseId(value) {
 router.get('/', async (req, res) => {
   try {
     const [notifications] = await pool.query(
-      `SELECT notification_id, order_id, message, is_read, created_at
+      `SELECT notification_id, order_id, product_id, message, is_read, created_at
        FROM notifications
        WHERE user_id = ?
        ORDER BY created_at DESC, notification_id DESC

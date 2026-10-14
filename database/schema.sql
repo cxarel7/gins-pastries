@@ -4,6 +4,7 @@ CREATE TABLE users (
   last_name     VARCHAR(50) NOT NULL,
   name          VARCHAR(101) AS (CONCAT(first_name, ' ', last_name)) VIRTUAL,
   contact       VARCHAR(100) NULL,
+    facebook      VARCHAR(150) NULL,
   email         VARCHAR(150) NOT NULL UNIQUE,
   password_hash VARCHAR(255) NOT NULL,
   role          ENUM('customer','admin') NOT NULL DEFAULT 'customer',

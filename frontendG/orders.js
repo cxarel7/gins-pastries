@@ -33,7 +33,7 @@
       "<h2>You don't have any orders yet!</h2>" +
       "<span>Explore our best-selling cookies and place your first order.</span>";
     const a = document.createElement("a");
-    a.href = "customerpage.html#bestSellingTitle";
+    a.href = "products.html#bestSellingTitle";
     a.className = "ord-btn";
     a.textContent = "View Our Best-Selling Cookies";
     d.appendChild(a);

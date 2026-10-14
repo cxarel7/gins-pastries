@@ -11,8 +11,29 @@
     return e;
   }
 
+  const VALID = ["all", "alerts", "low", "out", "archived"];
+  const EMPTY = {
+    all: "No cookies yet. Add your first cookie.",
+    alerts: "No stock alerts. Every active cookie has enough stock.",
+    low: "No cookies are running low.",
+    out: "No cookies are out of stock.",
+    archived: "No archived cookies."
+  };
+
   let filter = "all";
+  let search = "";
   let busy = false;
+  let seq = 0; // ignores out-of-date responses
+
+  function syncTabs() {
+    document.querySelectorAll("#ckTabs button").forEach((x) => x.classList.toggle("active", x.dataset.filter === filter));
+  }
+
+  // Dashboard links open this page as dashboard.html?filter=low#cookies
+  function applyUrlFilter() {
+    const f = new URLSearchParams(location.search).get("filter");
+    if (f && VALID.includes(f) && f !== filter) { filter = f; syncTabs(); }
+  }
 
   // ---------- Add / Edit pop-up ----------
   const overlay = el("div", "pf-overlay");
@@ -145,7 +166,9 @@
 
     const wasEditing = !!editing;
     closeForm();
-    Toast.success(wasEditing ? "Cookie updated successfully!" : "Cookie added successfully!");
+       let m = wasEditing ? "Cookie updated successfully!" : "Cookie added successfully!";
+    if (data.customers_notified) m += " Customers were notified.";
+    Toast.success(m);
     load();
   });
 
@@ -160,7 +183,8 @@
     });
     busy = false;
     if (!ok) return Toast.error(data.error || "Could not change the stock.");
-    Toast.success(`${p.product_name}: stock is now ${data.stock_quantity}.`);
+       Toast.success(`Stock quantity updated. ${p.product_name}: ${data.stock_quantity} in stock.` +
+      (data.customers_notified ? " Customers were notified." : ""));
     load();
   }
 
@@ -186,10 +210,17 @@
     return el("span", `stock-tag ${cls}`, text);
   }
 
+  function rowClass(p) {
+    if (p.status === "archived") return "ck-archived";
+    if (p.stock_status === "low_stock") return "ck-row-low";
+    if (p.stock_status === "out_of_stock") return "ck-row-out";
+    return "";
+  }
+
   function render(products) {
     const box = $("ckList");
     if (products.length === 0) {
-      box.replaceChildren(el("div", "ad-empty", "No cookies here."));
+      box.replaceChildren(el("div", "ad-empty", search ? "No cookies match your search." : EMPTY[filter]));
       return;
     }
     const table = el("table", "ck-table");
@@ -198,7 +229,7 @@
     table.appendChild(head);
 
     products.forEach((p) => {
-      const tr = el("tr", p.status === "archived" ? "ck-archived" : "");
+      const tr = el("tr", rowClass(p));
 
       const nameTd = el("td");
       nameTd.append(el("strong", "", p.product_name));
@@ -244,8 +275,12 @@
   }
 
   async function load() {
+    const mine = ++seq;
     $("ckList").replaceChildren(el("div", "ad-empty", "Loading cookies..."));
-    const { ok, data } = await Auth.api(`/api/inventory?filter=${filter}`);
+    const q = `filter=${filter}&search=${encodeURIComponent(search)}`;
+    const { ok, data } = await Auth.api(`/api/inventory?${q}`);
+    if (mine !== seq) return;
+
     if (!ok) {
       const b = el("button", "ad-btn", "Try again");
       b.type = "button";
@@ -254,22 +289,35 @@
       return;
     }
     const s = data.summary;
+    const attention = Number(s.low_stock) + Number(s.out_of_stock);
     $("ckSummary").textContent =
-      `Total ${s.total}  |  In stock ${s.in_stock}  |  Low stock ${s.low_stock} (5 or fewer)  |  Out of stock ${s.out_of_stock}  |  Archived ${s.archived}`;
+      `Total ${s.total}  |  In stock ${s.in_stock}  |  Low stock ${s.low_stock} (${data.low_stock_limit} or fewer)  |  ` +
+      `Out of stock ${s.out_of_stock}  |  Archived ${s.archived}  |  Needs attention ${attention}`;
     render(data.products);
   }
 
-  // ---------- Tabs ----------
+  // ---------- Controls ----------
   $("ckTabs").addEventListener("click", (e) => {
     const b = e.target.closest("button[data-filter]");
     if (!b) return;
     filter = b.dataset.filter;
-    document.querySelectorAll("#ckTabs button").forEach((x) => x.classList.toggle("active", x === b));
+    syncTabs();
     load();
   });
 
+  let timer = null;
+  $("ckSearch").addEventListener("input", (e) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => { search = e.target.value.trim(); load(); }, 300);
+  });
+
   // Load each time the Cookies tab is opened
-  function maybeLoad() { if (location.hash === "#cookies") load(); }
+  function maybeLoad() {
+    if (location.hash !== "#cookies") return;
+    applyUrlFilter();
+    load();
+  }
   window.addEventListener("hashchange", maybeLoad);
+  applyUrlFilter();
   maybeLoad();
 })();

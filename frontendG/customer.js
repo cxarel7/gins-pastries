@@ -2,19 +2,14 @@
 const user = Auth.require("customer");
 
 if (user) {
-  // Fixes "Loading..."
-  document.getElementById("welcome").textContent = `Hello, ${user.first_name || user.name}!`;
-
-  // Logout
-  document.getElementById("logoutBtn").addEventListener("click", (e) => {
-    e.preventDefault();
-    Auth.logout();
-  });
+  // The header itself is built by header.js
+  const w = document.getElementById("welcome");
+  if (w) w.textContent = `Hi, ${user.first_name || user.name}!`;
+  const out = document.getElementById("logoutBtn");
+  if (out) out.addEventListener("click", (e) => { e.preventDefault(); Auth.logout(); });
 }
 
-
-
-// avatar
+// Built-in avatar (our permanent profile picture)
 const AVATAR = "data:image/svg+xml;utf8," + encodeURIComponent(
   "<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'>" +
   "<rect width='100' height='100' fill='#510087'/>" +

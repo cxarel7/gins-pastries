@@ -1,8 +1,11 @@
 const express = require('express');
 const pool = require('../db');
 const { verifyToken, requireAdmin } = require('../middleware/auth');
+const { notifyAllCustomers } = require('../notifyHelper');
 
 const router = express.Router();
+
+const peso = (n) => '₱' + Number(n).toFixed(2).replace(/\.00$/, '');
 
 // Checks the data sent by the admin. Returns { error } or { data }.
 function validateProduct(body) {
@@ -107,54 +110,104 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// POST /api/products  (admin only)
+// POST /api/products  (admin only). A new ACTIVE cookie notifies every customer.
 router.post('/', verifyToken, requireAdmin, async (req, res) => {
-  try {
-    const { error, data } = validateProduct(req.body || {});
-    if (error) return res.status(400).json({ error });
+  const { error, data } = validateProduct(req.body || {});
+  if (error) return res.status(400).json({ error });
 
-    const [result] = await pool.query(
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
+
+    const [result] = await conn.query(
       `INSERT INTO products (product_name, description, price, stock_quantity, status, image)
        VALUES (?, ?, ?, ?, ?, ?)`,
       [data.name, data.description, data.price, data.stock, data.status, data.image]
     );
 
+    let notified = false;
+    if (data.status === 'active') {
+      await notifyAllCustomers(conn, result.insertId, `Meet our newest cookie: ${data.name}! Check it out.`);
+      notified = true;
+    }
+
+    await conn.commit();
+
     const [rows] = await pool.query('SELECT * FROM products WHERE product_id = ?', [result.insertId]);
-    res.status(201).json({ message: 'Cookie added.', product: rows[0] });
+    res.status(201).json({ message: 'Cookie added.', customers_notified: notified, product: rows[0] });
   } catch (err) {
+    await conn.rollback();
     if (err.code === 'ER_DUP_ENTRY') {
       return res.status(409).json({ error: 'A cookie with that name already exists.' });
     }
     console.error('Add product error:', err);
     res.status(500).json({ error: 'Server error. Please try again.' });
+  } finally {
+    conn.release();
   }
 });
 
 // PUT /api/products/:id  (admin only)
+// A real price change, or a restock from 0, on an ACTIVE cookie notifies every customer.
 router.put('/:id', verifyToken, requireAdmin, async (req, res) => {
+  const id = parseId(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid product ID.' });
+
+  const { error, data } = validateProduct(req.body || {});
+  if (error) return res.status(400).json({ error });
+
+  const conn = await pool.getConnection();
   try {
-    const id = parseId(req.params.id);
-    if (!id) return res.status(400).json({ error: 'Invalid product ID.' });
+    await conn.beginTransaction();
 
-    const { error, data } = validateProduct(req.body || {});
-    if (error) return res.status(400).json({ error });
+    // Lock the cookie so the old values we compare against can't change underneath us
+    const [old] = await conn.query(
+      'SELECT price, stock_quantity, status FROM products WHERE product_id = ? FOR UPDATE',
+      [id]
+    );
+    if (old.length === 0) {
+      await conn.rollback();
+      return res.status(404).json({ error: 'Cookie not found.' });
+    }
 
-    const [result] = await pool.query(
+    await conn.query(
       `UPDATE products
        SET product_name = ?, description = ?, price = ?, stock_quantity = ?, status = ?, image = ?
        WHERE product_id = ?`,
       [data.name, data.description, data.price, data.stock, data.status, data.image, id]
     );
-    if (result.affectedRows === 0) return res.status(404).json({ error: 'Cookie not found.' });
+
+    const oldPrice = Number(old[0].price);
+    const wasActive = old[0].status === 'active';
+    const stillActive = data.status === 'active';
+    let notified = false;
+
+    if (wasActive && stillActive && oldPrice !== data.price) {
+      const message = data.price < oldPrice
+        ? `Price drop! ${data.name} went down from ${peso(oldPrice)} to ${peso(data.price)}.`
+        : `Price update: ${data.name} went up from ${peso(oldPrice)} to ${peso(data.price)}.`;
+      await notifyAllCustomers(conn, id, message);
+      notified = true;
+    }
+
+    if (wasActive && stillActive && old[0].stock_quantity === 0 && data.stock > 0) {
+      await notifyAllCustomers(conn, id, `Back in stock! ${data.name} is available again.`);
+      notified = true;
+    }
+
+    await conn.commit();
 
     const [rows] = await pool.query('SELECT * FROM products WHERE product_id = ?', [id]);
-    res.json({ message: 'Cookie updated.', product: rows[0] });
+    res.json({ message: 'Cookie updated.', customers_notified: notified, product: rows[0] });
   } catch (err) {
+    await conn.rollback();
     if (err.code === 'ER_DUP_ENTRY') {
       return res.status(409).json({ error: 'A cookie with that name already exists.' });
     }
     console.error('Update product error:', err);
     res.status(500).json({ error: 'Server error. Please try again.' });
+  } finally {
+    conn.release();
   }
 });
 

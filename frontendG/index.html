@@ -3,69 +3,106 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login</title>
+  <title>Gin's Pastries</title>
   <link rel="stylesheet" href="design.css">
 </head>
 <body>
 
-    <div class="container">
+  <div class="auth">
+    <img class="auth-photo" src="coki.jpg" alt="Chocolate chip cookies on a plate">
 
-        <img src="coki.jpg" alt="coki">
+    <main class="auth-side">
 
-        <main class="card">
+      <!-- ===== LOGIN ===== -->
+      <form id="loginForm" class="auth-card" novalidate>
+        <h1 class="auth-title">Login</h1>
+        <p class="auth-sub">Welcome to Gin's Pastries</p>
 
-            <form id="loginForm" novalidate>
-            <h2>Welcome to Gin's Pastries</h2>
-            <p class="subtitle">Sign in to your account</p>
+        <label class="auth-label" for="email">Email</label>
+        <input class="auth-input" type="email" id="email" autocomplete="email">
 
-            <label for="email">Email</label>
-            <input type="email" id="email" autocomplete="email">
+        <label class="auth-label" for="password">Password</label>
+        <input class="auth-input" type="password" id="password" autocomplete="current-password">
 
-            <label for="password">Password</label>
-            <input type="password" id="password" autocomplete="current-password">
+        <div class="row-between">
+          <label class="show-password"><input type="checkbox" id="showPassword"> Show Password</label>
+          <a href="#" id="forgotLink" class="forgot">Forgot password?</a>
+        </div>
 
-            <div class="row-between">
-              <label class="show-password">
-                <input type="checkbox" id="showPassword">
-                Show Password
-              </label>
-              <a href="#" id="forgotLink" class="forgot">Forgot password?</a>
-            </div>
+        <button type="submit" class="btn-main" id="loginBtn">Login</button>
+        <div id="message" role="alert" aria-live="polite"></div>
+        <p class="auth-link">Don't have an account? <a href="#" id="showRegister">Register</a></p>
+      </form>
 
-            <button type="submit" id="loginBtn">Login</button>
-            <p id="message" role="alert" aria-live="polite"></p>
-            <p>Don't have an account? <a href="#" id="showRegister">Register</a></p>
-            </form>
+      <!-- ===== CREATE ACCOUNT ===== -->
+      <form id="registerForm" class="auth-card hidden" novalidate>
+        <h1 class="auth-title">Create Account</h1>
 
-            <form id="registerForm" class="hidden" novalidate>
-            <h2>Create Account</h2>
+        <div class="auth-row">
+          <div>
+            <label class="auth-label" for="firstName">First Name</label>
+            <input class="auth-input" type="text" id="firstName" autocomplete="given-name">
+          </div>
+          <div>
+            <label class="auth-label" for="lastName">Last Name</label>
+            <input class="auth-input" type="text" id="lastName" autocomplete="family-name">
+          </div>
+        </div>
 
-            <label for="name">Name</label>
-            <input type="text" id="name" autocomplete="name">
+        <label class="auth-label" for="contact">Contact</label>
+        <input class="auth-input" type="tel" id="contact" placeholder="09XX XXX XXXX" autocomplete="tel">
 
-            <label for="regEmail">Email</label>
-            <input type="email" id="regEmail" autocomplete="email">
+        <label class="auth-label" for="facebook">Facebook link (optional)</label>
+        <input class="auth-input" type="text" id="facebook" placeholder="facebook.com/yourname">
 
-            <label for="regPassword">Password</label>
-            <input type="password" id="regPassword" autocomplete="new-password">
-            <label class="show-password">
-            <input type="checkbox" id="showRegPassword">
-            Show Password
-            </label>
+        <label class="auth-label" for="regEmail">Email</label>
+        <input class="auth-input" type="email" id="regEmail" autocomplete="email">
 
-            <button type="submit" id="registerBtn">Register</button>
-            <p id="registerMessage" role="alert" aria-live="polite"></p>
+        <label class="auth-label small" for="regCode">Code</label>
+        <div class="code-row">
+          <input class="auth-input" type="text" id="regCode" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="6 digits">
+          <button type="button" class="btn-outline" id="sendRegCode">SEND CODE</button>
+        </div>
 
-            <button type="button" id="backBtn" class="back-btn">
-            ← Back to Login
-            </button>
-            </form>
-        </main>
+        <label class="auth-label" for="regPassword">Password</label>
+        <input class="auth-input" type="password" id="regPassword" autocomplete="new-password">
+        <label class="show-password"><input type="checkbox" id="showRegPassword"> Show Password</label>
 
-    </div>
+        <button type="submit" class="btn-main" id="registerBtn">Register</button>
+        <div id="registerMessage" role="alert" aria-live="polite"></div>
+        <button type="button" class="btn-back" id="backBtn">Back to login</button>
+      </form>
+
+      <!-- ===== FORGET PASSWORD ===== -->
+      <form id="forgotForm" class="auth-card hidden" novalidate>
+        <h1 class="auth-title">Forget Password</h1>
+
+        <label class="auth-label" for="fpEmail">Email</label>
+        <input class="auth-input" type="email" id="fpEmail" autocomplete="email">
+
+        <label class="auth-label small" for="fpCode">Code</label>
+        <div class="code-row">
+          <input class="auth-input" type="text" id="fpCode" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="6 digits">
+          <button type="button" class="btn-outline" id="sendFpCode">SEND CODE</button>
+        </div>
+
+        <label class="auth-label" for="fpPassword">Password</label>
+        <input class="auth-input" type="password" id="fpPassword" autocomplete="new-password" placeholder="New password">
+        <label class="show-password"><input type="checkbox" id="showFpPassword"> Show Password</label>
+
+        <button type="submit" class="btn-main" id="fpBtn">Change</button>
+        <div id="fpMessage" role="alert" aria-live="polite"></div>
+        <button type="button" class="btn-back" id="fpBack">Back to login</button>
+      </form>
+
+    </main>
+  </div>
+
+   <footer id="siteFooter"></footer>
 
   <script src="config.js"></script>
   <script src="auth.js"></script>
   <script src="Script.js"></script>
+  <script src="footer.js"></script>
 </body>
 </html>
