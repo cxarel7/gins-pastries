@@ -224,4 +224,49 @@ router.get('/products/top-selling', async (req, res) => {
   }
 });
 
+
+
+/* GET /api/admin/customers
+   Admin-only list of registered customer accounts.
+*/
+router.get('/customers', async (req, res) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT
+        u.user_id,
+        u.first_name,
+        u.last_name,
+        u.name,
+        u.email,
+        u.contact,
+        u.facebook,
+        u.created_at,
+        u.email_verified,
+        COUNT(DISTINCT o.order_id) AS order_count
+      FROM users u
+      LEFT JOIN orders o ON o.user_id = u.user_id
+      WHERE u.role = 'customer'
+      GROUP BY
+        u.user_id,
+        u.first_name,
+        u.last_name,
+        u.name,
+        u.email,
+        u.contact,
+        u.facebook,
+        u.created_at,
+        u.email_verified
+      ORDER BY u.created_at DESC, u.user_id DESC
+    `);
+
+    res.json({ customers: rows });
+  } catch (err) {
+    console.error('Admin customers error:', err);
+    res.status(500).json({
+      error: 'Unable to load customers. Please try again.'
+    });
+  }
+});
+
+
 module.exports = router;
