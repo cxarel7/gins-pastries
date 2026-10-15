@@ -138,8 +138,8 @@
   // ----- Step buttons -----
   $("pfEdit").addEventListener("click", () => setMode("edit"));
   $("pfGoPw").addEventListener("click", () => setMode("password"));
-  $("pfCancel").addEventListener("click", () => { if (original) fill(original); setMode("view"); });
-  $("pfPwCancel").addEventListener("click", () => setMode("view"));
+  $("pfCancel").addEventListener("click", () => { if (original) fill(original); close(); });
+  $("pfPwCancel").addEventListener("click", close);
 
   // ----- Save profile -----
   $("pfSave").addEventListener("click", async () => {
