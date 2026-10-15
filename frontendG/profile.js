@@ -3,8 +3,6 @@
   const avatar = document.querySelector(".prof img");
   if (!user || !avatar) return;
 
-  avatar.classList.add("avatar-btn");
-  avatar.title = "My profile";
 
   const isAdmin = user.role === "admin";
   const MONTHS = ["January","February","March","April","May","June","July",
@@ -133,7 +131,6 @@
 
   function close() { overlay.classList.remove("open"); }
 
-  avatar.addEventListener("click", () => open("view"));
   $("pfClose").addEventListener("click", close);
   overlay.addEventListener("click", (e) => { if (e.target === overlay) close(); });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });

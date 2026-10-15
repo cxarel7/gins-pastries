@@ -180,7 +180,6 @@
 
   burger.addEventListener("click", openDrawer);
   close.addEventListener("click", closeDrawer);
-  avatar.addEventListener("click", closeDrawer);
   overlay.addEventListener("click", (e) => { if (e.target === overlay) closeDrawer(); });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeDrawer(); });
 })();
