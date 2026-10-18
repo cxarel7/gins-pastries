@@ -9,7 +9,15 @@
 <body>
 
   <div class="auth">
-    <img class="auth-photo" src="coki.jpg" alt="Chocolate chip cookies on a plate">
+    <section class="album" id="album" role="region" aria-roledescription="carousel" aria-label="Gin's Pastries photo album">
+  <div class="album-stage"></div>
+  <button type="button" class="album-arrow album-prev" aria-label="Previous picture">‹</button>
+  <button type="button" class="album-arrow album-next" aria-label="Next picture">›</button>
+  <div class="album-bar">
+    <div class="album-dots"></div>
+    <button type="button" class="album-toggle" aria-label="Pause slideshow">❚❚</button>
+  </div>
+</section>
 
     <main class="auth-side">
 
@@ -102,6 +110,7 @@
 
   <script src="config.js"></script>
   <script src="auth.js"></script>
+  <script src="album.js"></script>
   <script src="Script.js"></script>
   <script src="footer.js"></script>
 </body>

@@ -46,7 +46,7 @@
       <div class="pf-row"><span>Price (₱)</span><input id="ckPrice" type="number" min="1" step="0.01"></div>
       <div class="pf-row"><span>Stock quantity</span><input id="ckStock" type="number" min="0" step="1"></div>
       <div class="pf-row">
-        <span>Cookie picture (optional)</span>
+        <span>Cookie picture</span>
         <div class="ck-pic">
           <img id="ckPreview" alt="Preview" class="ck-preview hidden-pf">
           <div class="ck-pic-btns">
