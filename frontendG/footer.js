@@ -5,8 +5,10 @@
   // ===== EDIT THIS: your shop's real details =====
   const SHOP = {
     about: [
-      "Freshly baked cookies, made to order.",
-      "Pre-order online and pick up at the shop."
+    "Welcome to Gin's Pastries, where every bite is baked with love and a little bit of magic!",
+     "Our pastries are made fresh daily with the finest ingredients and a whole lot of heart. ",
+     "Whether you're stopping by for a morning pick-me-up or planning a sweet surprise for someone special, ",
+     "we've got something to brighten your day. Come on in, treat yourself, because you deserve it!"
     ],
     contact: [
       "Mobile: 0907 588 5444",
@@ -16,7 +18,6 @@
   const TERMS = [
     "All orders are pre-orders. An order is confirmed only after the shop confirms it.",
     "Orders are for pickup on the date and time you choose. We do not deliver.",
-    "A cookie that is out of stock cannot be ordered.",
     "Please pick up your order on time so your cookies stay fresh.",
     "The shop may cancel an order. When that happens, the reason is shown on your Order Status page.",
     "If you have any concern about your order, please contact us using the details in the footer."
