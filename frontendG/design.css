@@ -334,7 +334,11 @@ body {
 .tm-close { position: absolute; top: 16px; right: 22px; margin: 0; padding: 0; border: 0; background: none; font-size: 1.8rem; color: #501c83; cursor: pointer; }
 
 /* ===== Photo album (left side of the login page) ===== */
-.album { position: sticky; top: 0; width: 53%; height: 100vh; overflow: hidden; background: #d1a3fd; color: #fff; }
+.album {
+  position: sticky; top: 20px; width: 53%; height: calc(100vh - 40px); margin: 20px 0 20px 20px;
+  overflow: hidden; border-radius: 40px; background: #d1a3fd; color: #fff;
+  box-shadow: 0 14px 34px rgba(80,28,131,.22);
+}
 .album-stage { position: absolute; inset: 0; }
 .album-slide { position: absolute; inset: 0; opacity: 0; visibility: hidden; transition: opacity .7s ease, visibility .7s; }
 .album-slide.active { opacity: 1; visibility: visible; }
@@ -386,7 +390,7 @@ body {
 .album-arrow:focus-visible, .album-dot:focus-visible, .album-toggle:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
 
 @media (max-width: 800px) {
-  .album { position: relative; width: 100%; height: 280px; }
+  .album { position: relative; top: 0; width: calc(100% - 32px); height: 280px; margin: 16px 16px 0; border-radius: 32px; }
   .album-caption { left: 18px; right: 18px; bottom: 62px; }
   .album-caption h2 { font-size: 1.3rem; }
   .album-slide.is-card { padding: 24px 64px; }
@@ -398,7 +402,3 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .album-slide, .album-arrow, .album-dot { transition: none; }
 }
-
-
-
-
