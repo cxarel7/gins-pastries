@@ -398,3 +398,49 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .album-slide, .album-arrow, .album-dot { transition: none; }
 }
+
+
+
+
+/* ===== Login page layout: album and card fill the screen, slim footer below ===== */
+body { display: flex; flex-direction: column; min-height: 100vh; }
+.auth { flex: 1 0 auto; min-height: 0; }
+.album { position: relative; top: auto; height: auto; min-height: 560px; align-self: stretch; }
+
+/* Slim footer */
+.gp-footer-compact { flex-shrink: 0; background: #d1a3fd; border-top: 3px solid #501c83; color: #501c83; font-size: .95rem; }
+.gp-foot-bar {
+  max-width: 1200px; margin: 0 auto; padding: 10px 24px;
+  display: flex; align-items: center; justify-content: space-between; gap: 10px 24px; flex-wrap: wrap;
+}
+.gp-foot-bar .gp-terms-btn {
+  margin: 0; padding: 5px 18px; border: 2px solid #501c83; border-radius: 999px; background: transparent;
+  color: #501c83; font: inherit; font-size: .9rem; font-weight: 700; cursor: pointer; transition: background .2s, color .2s;
+}
+.gp-foot-bar .gp-terms-btn:hover { background: #501c83; color: #e9d5ff; }
+.gp-foot-contact { text-align: right; }
+
+/* Terms and Conditions pop-up */
+.tm-overlay {
+  position: fixed; inset: 0; z-index: 80; background: rgba(40,0,70,.5); padding: 16px;
+  display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity .25s ease;
+}
+.tm-overlay.open { opacity: 1; pointer-events: auto; }
+.tm-box {
+  position: relative; width: 100%; max-width: 760px; max-height: 88vh; overflow-y: auto;
+  background: #fff; border: 4px solid #501c83; border-radius: 44px; padding: 30px 36px 34px; color: #501c83;
+  font-family: "Poppins", "Segoe UI", system-ui, sans-serif; transform: translateY(14px) scale(.98); transition: transform .25s ease;
+}
+.tm-overlay.open .tm-box { transform: none; }
+.tm-box h2 { margin: 0 0 14px; text-align: center; font-size: 1.5rem; line-height: 1.3; }
+.tm-box ol { margin: 0; padding-left: 1.3rem; font-size: .98rem; line-height: 1.6; }
+.tm-box li { margin-bottom: 8px; }
+.tm-close { position: absolute; top: 16px; right: 22px; margin: 0; padding: 0; border: 0; background: none; font-size: 1.8rem; color: #501c83; cursor: pointer; }
+
+@media (max-width: 800px) {
+  .album { width: 100%; height: 280px; min-height: 0; align-self: auto; }
+  .gp-foot-bar { justify-content: center; text-align: center; }
+  .gp-foot-contact { text-align: center; }
+  .tm-box { padding: 26px 20px; border-radius: 30px; }
+}
+@media (prefers-reduced-motion: reduce) { .tm-overlay, .tm-box { transition: none; } }

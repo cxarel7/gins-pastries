@@ -7,8 +7,7 @@
     about: [
     "Welcome to Gin's Pastries, where every bite is baked with love and a little bit of magic!",
      "Our pastries are made fresh daily with the finest ingredients and a whole lot of heart. ",
-     "Whether you're stopping by for a morning pick-me-up or planning a sweet surprise for someone special, ",
-     "we've got something to brighten your day. Come on in, treat yourself, because you deserve it!"
+
     ],
     contact: [
       "Mobile: 0907 588 5444",
@@ -44,8 +43,21 @@
   const colContact = el("div");
   colContact.append(el("h3", "", "Contact Us"), ...SHOP.contact.map((t) => el("p", "", t)));
 
-  grid.append(colAbout, colLinks, colContact);
-  host.append(grid, el("div", "gp-copy", `Copyright © ${new Date().getFullYear()} Gin's Pastries`));
+  const year = new Date().getFullYear();
+  if (host.hasAttribute("data-compact")) {
+    // Slim one-line footer for the login page
+    host.classList.add("gp-footer-compact");
+    const bar = el("div", "gp-foot-bar");
+    bar.append(
+      el("span", "gp-foot-copy", `© ${year} Gin's Pastries`),
+      termsBtn,
+      el("span", "gp-foot-contact", SHOP.contact.join("  |  "))
+    );
+    host.append(bar);
+  } else {
+    grid.append(colAbout, colLinks, colContact);
+    host.append(grid, el("div", "gp-copy", `Copyright © ${year} Gin's Pastries`));
+  }
 
   // ----- Terms pop-up -----
   const overlay = el("div", "tm-overlay");
