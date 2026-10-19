@@ -43,21 +43,8 @@
   const colContact = el("div");
   colContact.append(el("h3", "", "Contact Us"), ...SHOP.contact.map((t) => el("p", "", t)));
 
-  const year = new Date().getFullYear();
-  if (host.hasAttribute("data-compact")) {
-    // Slim one-line footer for the login page
-    host.classList.add("gp-footer-compact");
-    const bar = el("div", "gp-foot-bar");
-    bar.append(
-      el("span", "gp-foot-copy", `© ${year} Gin's Pastries`),
-      termsBtn,
-      el("span", "gp-foot-contact", SHOP.contact.join("  |  "))
-    );
-    host.append(bar);
-  } else {
-    grid.append(colAbout, colLinks, colContact);
-    host.append(grid, el("div", "gp-copy", `Copyright © ${year} Gin's Pastries`));
-  }
+  grid.append(colAbout, colLinks, colContact);
+  host.append(grid, el("div", "gp-copy", `Copyright © ${new Date().getFullYear()} Gin's Pastries`));
 
   // ----- Terms pop-up -----
   const overlay = el("div", "tm-overlay");
