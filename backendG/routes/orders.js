@@ -8,6 +8,7 @@ const MAX_ITEMS = 20;
 const MAX_QTY_PER_COOKIE = 50;
 const PAGE_SIZE = 10;
 const TZ = 'Asia/Manila';
+const MIN_LEAD_DAYS = 1; // pickup must be at least this many days after the order date
 
 const STATUSES = ['Pending', 'Confirmed', 'Preparing', 'Ready', 'Completed', 'Cancelled'];
 
@@ -64,6 +65,13 @@ function isRealDate(str) {
 
 function isRealTime(str) {
   return /^([01]\d|2[0-3]):[0-5]\d$/.test(str);
+
+}
+
+function addDays(dateStr, days) {
+  const d = new Date(`${dateStr}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
 }
 
 // Adds an "items" list to each order
@@ -106,8 +114,11 @@ router.post('/orders', verifyToken, async (req, res) => {
     return res.status(400).json({ error: 'Pickup time must be a real time (HH:MM, 24-hour).' });
   }
   const now = nowInManila();
-  if (pDate < now.date || (pDate === now.date && pTime <= now.time)) {
-    return res.status(400).json({ error: 'Pickup date and time must be in the future.' });
+  const earliest = addDays(now.date, MIN_LEAD_DAYS);
+  if (pDate < earliest) {
+    return res.status(400).json({
+      error: `Please choose ${earliest} or a later date. We need at least ${MIN_LEAD_DAYS} day${MIN_LEAD_DAYS === 1 ? '' : 's'} to prepare your order.`
+    });
   }
 
   const payRef = String(payment_reference || '').trim();

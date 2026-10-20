@@ -34,8 +34,21 @@
   function nowTimeManila() {
     return new Date().toLocaleTimeString("en-GB", { timeZone: "Asia/Manila", hour: "2-digit", minute: "2-digit", hour12: false });
   }
-  dateEl.min = todayManila();
-
+  // Orders need time to prepare: the earliest pickup date is MIN_LEAD_DAYS after today
+  const MIN_LEAD_DAYS = 1;
+  function earliestPickup() {
+    const d = new Date(`${todayManila()}T00:00:00Z`);
+    d.setUTCDate(d.getUTCDate() + MIN_LEAD_DAYS);
+    return d.toISOString().slice(0, 10);
+  }
+  function prettyDate(str) {
+    const [y, m, d] = str.split("-").map(Number);
+    return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString("en-PH", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" });
+  }
+  dateEl.min = earliestPickup();
+  const leadNote = el("small", "ct-lead",
+    `Please order at least ${MIN_LEAD_DAYS} day${MIN_LEAD_DAYS === 1 ? "" : "s"} ahead so we have time to prepare. Earliest pickup: ${prettyDate(earliestPickup())}.`);
+  dateEl.insertAdjacentElement("afterend", leadNote);
   function showMsg(type, text) {
     msgEl.replaceChildren();
     if (text) msgEl.appendChild(el("div", `ct-note ct-${type}`, text));

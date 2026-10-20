@@ -1269,3 +1269,6 @@ a.ad-link-btn { display: block; margin-top: 12px; text-align: center; text-decor
 .pf-hint { display: block; margin-top: 4px; font-size: .8rem; opacity: .85; }
 
 @media (max-width: 800px) { .cs-row { flex-direction: column; gap: 0; } .cs-key { flex-basis: auto; } }
+
+/* Pickup lead-time note under the date */
+.ct-when .ct-lead { display: block; margin: -2px 0 8px; font-size: .75rem; line-height: 1.3; color: #e9d5ff; }

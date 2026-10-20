@@ -19,7 +19,8 @@
     "Orders are for pickup on the date and time you choose. We do not deliver.",
     "Please pick up your order on time so your cookies stay fresh.",
     "The shop may cancel an order. When that happens, the reason is shown on your Order Status page.",
-    "If you have any concern about your order, please contact us using the details in the footer."
+    "If you have any concern about your order, please contact us using the details in the footer.",
+        "Please order at least 1 day before your pickup date so we have time to prepare your cookies."
   ];
 
   function el(tag, cls, text) {
