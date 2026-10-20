@@ -192,12 +192,32 @@
 
     const q = new URLSearchParams({ sort, page: String(page), search });
     if (filter) q.set("status", filter);
-    const { ok, data } = await Auth.api(`/api/orders?${q.toString()}`);
-
-console.log("Orders API response:", data);
-console.log("Is data an array?", Array.isArray(data));
+  const { ok, data: responseData } = await Auth.api(
+  `/api/orders?${q.toString()}`
+);
 
 if (mine !== seq) return;
+
+// Support either an array or the expected object response.
+const data = Array.isArray(responseData)
+  ? {
+      orders: responseData,
+      counts: {},
+      total: responseData.length,
+      page: 1,
+      pages: 1
+    }
+  : responseData;
+
+if (!ok || !data || !Array.isArray(data.orders)) {
+  console.error("Invalid orders response:", responseData);
+
+  $("orList").replaceChildren(
+    el("div", "ad-empty", "Could not load orders. Please try again.")
+  );
+  $("orPager").replaceChildren();
+  return;
+}
 
     if (!ok) {
       const b = el("button", "ad-btn", "Try again");
