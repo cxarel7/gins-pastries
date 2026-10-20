@@ -16,15 +16,6 @@
 
   const TZ = "Asia/Manila";
 
-  const STATUSES = [
-    "Pending",
-    "Confirmed",
-    "Preparing",
-    "Ready",
-    "Completed",
-    "Cancelled"
-  ];
-
   const NEXT = {
     Pending: ["Confirmed", "Confirm order"],
     Confirmed: ["Preparing", "Start preparing"],
@@ -39,11 +30,8 @@
   let busy = false;
   let seq = 0;
 
-  // Keep the counts separately from the selected status filter.
-  let savedCounts = null;
-
   function fmtTime(t) {
-    const [h, m] = String(t || "00:00").split(":");
+    const [h, m] = String(t).split(":");
     const hour = Number(h);
     return `${hour % 12 || 12}:${m} ${hour >= 12 ? "PM" : "AM"}`;
   }
@@ -61,27 +49,18 @@
     if (o.status === "Completed" || o.status === "Cancelled") return null;
 
     const t = today();
-
-    if (o.pickup_date < t) {
-      return el("span", "or-chip or-late", "Overdue");
-    }
-
-    if (o.pickup_date === t) {
-      return el("span", "or-chip or-today", "Pickup today");
-    }
-
+    if (o.pickup_date < t) return el("span", "or-chip or-late", "Overdue");
+    if (o.pickup_date === t) return el("span", "or-chip or-today", "Pickup today");
     if (o.pickup_date === addDays(t, 1)) {
       return el("span", "or-chip or-tomorrow", "Pickup tomorrow");
     }
-
     return null;
   }
 
   const ASK = {
     Confirmed: (o) => ({
       title: "Payment received?",
-      message:
-        "Are you sure you received the money? Check your GCash app before confirming.",
+      message: "Are you sure you received the money? Check your GCash app before confirming.",
       details: [
         `Order #${o.order_id}  |  ${o.customer_name}`,
         `GCash reference: ${o.payment_reference || "none"}`,
@@ -93,8 +72,7 @@
 
     Ready: (o) => ({
       title: "Mark as ready?",
-      message:
-        "Are you sure? The customer is notified right away that the cookies are ready for pickup.",
+      message: "Are you sure? The customer is notified right away that the cookies are ready for pickup.",
       details: [
         `Order #${o.order_id}  |  ${o.customer_name}`,
         `Pickup: ${o.pickup_date} at ${fmtTime(o.pickup_time)}`
@@ -105,8 +83,7 @@
 
     Completed: (o) => ({
       title: "Mark as completed?",
-      message:
-        "Are you sure the customer already picked up the order? Completed orders count as sales and can't be changed.",
+      message: "Are you sure the customer already picked up the order? Completed orders count as sales and can't be changed.",
       details: [
         `Order #${o.order_id}  |  ${o.customer_name}`,
         `Total: ${peso(o.total_amount)}`
@@ -124,8 +101,7 @@
     if (status === "Cancelled") {
       const r = await Confirm.ask({
         title: `Cancel order #${o.order_id}?`,
-        message:
-          "The cookies go back into stock and the customer is notified. The customer will see the reason you type.",
+        message: "The cookies go back into stock and the customer is notified. The customer will see the reason you type.",
         input: { label: "Reason for cancelling", min: 3, max: 120 },
         yes: "Cancel order",
         no: "Keep order",
@@ -140,7 +116,6 @@
     }
 
     busy = true;
-
     document.querySelectorAll("#orList button").forEach((b) => {
       b.disabled = true;
     });
@@ -155,18 +130,13 @@
       );
 
       if (!ok) {
-        Toast.error(
-          data?.error || "Could not update the order. Please try again."
-        );
+        Toast.error(data?.error || "Could not update the order. Please try again.");
       } else {
         Toast.success(
           `Order #${o.order_id} is now ${
             status === "Ready" ? "Ready for Pickup" : status
           }.`
         );
-
-        // Refresh counts after a successful status change.
-        savedCounts = null;
       }
     } catch (err) {
       console.error("Order status update failed:", err);
@@ -193,13 +163,7 @@
     const who = el("div", "ad-who");
     who.append(
       el("strong", "", o.customer_name || "Unknown customer"),
-      el(
-        "span",
-        "",
-        o.customer_contact
-          ? ` | ${o.customer_contact}`
-          : " | no contact on file"
-      ),
+      el("span", "", o.customer_contact ? ` | ${o.customer_contact}` : " | no contact on file"),
       el("span", "", o.customer_facebook ? ` | FB: ${o.customer_facebook}` : ""),
       el("span", "", ` | ${o.customer_email || ""}`)
     );
@@ -207,9 +171,7 @@
     const info = el(
       "div",
       "ord-info",
-      `Ordered: ${String(o.order_date || "").slice(0, 16)}  |  Pickup: ${
-        o.pickup_date || ""
-      } at ${fmtTime(o.pickup_time)}`
+      `Ordered: ${String(o.order_date || "").slice(0, 16)}  |  Pickup: ${o.pickup_date || ""} at ${fmtTime(o.pickup_time || "00:00")}`
     );
 
     const chip = pickupChip(o);
@@ -224,22 +186,16 @@
     }
 
     const list = el("ul", "ord-items");
-
     (Array.isArray(o.items) ? o.items : []).forEach((i) => {
       const li = el("li");
-
       li.append(
         el("span", "", `${i.product_name} × ${i.quantity}`),
         el("span", "", peso(i.subtotal))
       );
-
       list.appendChild(li);
     });
 
-    div.append(
-      list,
-      el("div", "ord-total", `Total: ${peso(o.total_amount)}`)
-    );
+    div.append(list, el("div", "ord-total", `Total: ${peso(o.total_amount)}`));
 
     if (o.status === "Cancelled" && o.cancel_reason) {
       div.appendChild(
@@ -271,53 +227,13 @@
     return div;
   }
 
-  function normalizeCounts(source) {
-    if (!source || typeof source !== "object") return null;
-
-    const counts = {};
-    const allValue = source.all ?? source.All;
-
-    if (allValue === undefined) return null;
-
-    counts.all = Number(allValue) || 0;
-
-    STATUSES.forEach((status) => {
-      const value = source[status.toLowerCase()] ?? source[status];
-      counts[status.toLowerCase()] = Number(value) || 0;
-    });
-
-    return counts;
-  }
-
-  function buildCounts(orders) {
-    const counts = {
-      all: orders.length,
-      pending: 0,
-      confirmed: 0,
-      preparing: 0,
-      ready: 0,
-      completed: 0,
-      cancelled: 0
-    };
-
-    orders.forEach((order) => {
-      const status = String(order.status || "").trim().toLowerCase();
-
-      if (Object.prototype.hasOwnProperty.call(counts, status)) {
-        counts[status]++;
-      }
-    });
-
-    return counts;
-  }
-
   function renderTabs(counts) {
     document.querySelectorAll("#orTabs button").forEach((b) => {
       if (!b.dataset.label) {
         b.dataset.label = b.textContent.replace(/\s*\(\d+\)\s*$/, "");
       }
 
-      const key = (b.dataset.filter || "all").toLowerCase();
+      const key = b.dataset.filter || "all";
       const count = Number(counts?.[key] ?? 0);
 
       b.textContent = `${b.dataset.label} (${count})`;
@@ -354,12 +270,34 @@
     );
   }
 
+  function normalizeStatus(status) {
+    return String(status || "").trim().toLowerCase();
+  }
+
+  function buildCounts(orders) {
+    const counts = {
+      all: orders.length,
+      pending: 0,
+      confirmed: 0,
+      preparing: 0,
+      ready: 0,
+      completed: 0,
+      cancelled: 0
+    };
+
+    orders.forEach((order) => {
+      const status = normalizeStatus(order.status);
+      if (Object.prototype.hasOwnProperty.call(counts, status)) {
+        counts[status]++;
+      }
+    });
+
+    return counts;
+  }
+
   async function load() {
     const mine = ++seq;
-
-    $("orList").replaceChildren(
-      el("div", "ad-empty", "Loading orders...")
-    );
+    $("orList").replaceChildren(el("div", "ad-empty", "Loading orders..."));
 
     const q = new URLSearchParams({
       sort,
@@ -378,7 +316,6 @@
 
       if (!ok || !responseData) {
         console.error("Orders API error:", responseData);
-
         $("orList").replaceChildren(
           el("div", "ad-empty", "Could not load orders. Please try again.")
         );
@@ -389,36 +326,41 @@
       let data;
 
       if (Array.isArray(responseData)) {
-        // Fallback for APIs returning an array.
+        // Fallback for an API that returns an array.
+        // Counts here reflect only the orders returned by that API response.
+        const allReturnedOrders = responseData;
+        const counts = buildCounts(allReturnedOrders);
+
+        const visibleOrders = allReturnedOrders.filter((order) => {
+          const matchesStatus =
+            !filter || normalizeStatus(order.status) === normalizeStatus(filter);
+
+          const term = search.toLowerCase();
+          const matchesSearch =
+            !term ||
+            [
+              order.order_id,
+              order.customer_name,
+              order.customer_email,
+              order.customer_contact
+            ].some((value) => String(value || "").toLowerCase().includes(term));
+
+          return matchesStatus && matchesSearch;
+        });
+
         data = {
-          orders: responseData,
-          total: responseData.length,
+          orders: visibleOrders,
+          counts,
+          total: visibleOrders.length,
           page: 1,
           pages: 1
         };
-
-        // Only use these counts if no complete counts are available yet.
-        if (!savedCounts) {
-          savedCounts = buildCounts(responseData);
-        }
       } else {
         data = responseData;
-
-        // Preserve full counts when the backend provides them.
-        const receivedCounts = normalizeCounts(responseData.counts);
-
-        if (receivedCounts) {
-          savedCounts = receivedCounts;
-        } else if (!savedCounts) {
-          savedCounts = buildCounts(
-            Array.isArray(responseData.orders) ? responseData.orders : []
-          );
-        }
       }
 
       if (!data || !Array.isArray(data.orders)) {
         console.error("Invalid orders response:", responseData);
-
         $("orList").replaceChildren(
           el("div", "ad-empty", "Could not load orders. Please try again.")
         );
@@ -426,8 +368,26 @@
         return;
       }
 
-      // Do not recalculate counts from the currently filtered list.
-      renderTabs(savedCounts || buildCounts(data.orders));
+      // Normalize counts from the backend or derive them from available orders.
+      let counts = data.counts;
+
+      if (!counts || typeof counts !== "object") {
+        counts = buildCounts(data.orders);
+      } else {
+        // Support either lowercase or capitalized status keys.
+        const normalizedCounts = { all: Number(counts.all ?? counts.All ?? 0) };
+
+        ["Pending", "Confirmed", "Preparing", "Ready", "Completed", "Cancelled"]
+          .forEach((status) => {
+            normalizedCounts[status.toLowerCase()] = Number(
+              counts[status.toLowerCase()] ?? counts[status] ?? 0
+            );
+          });
+
+        counts = normalizedCounts;
+      }
+
+      renderTabs(counts);
 
       $("orSummary").textContent =
         `${data.total ?? data.orders.length} order(s) shown` +
@@ -441,30 +401,26 @@
             search ? "No orders match your search." : "No orders here yet."
           )
         );
-
         $("orPager").replaceChildren();
         return;
       }
 
       $("orList").replaceChildren(...data.orders.map(card));
-
       renderPager({
         ...data,
         pages: data.pages || 1
       });
     } catch (err) {
       if (mine !== seq) return;
-
       console.error("Could not load orders:", err);
-
       $("orList").replaceChildren(
         el("div", "ad-empty", "Could not load orders. Please try again.")
       );
-
       $("orPager").replaceChildren();
     }
   }
 
+  // Status tabs
   $("orTabs").addEventListener("click", (e) => {
     const b = e.target.closest("button[data-filter]");
     if (!b) return;
@@ -474,11 +430,10 @@
     load();
   });
 
+  // Search
   let timer = null;
-
   $("orSearch").addEventListener("input", (e) => {
     clearTimeout(timer);
-
     timer = setTimeout(() => {
       search = e.target.value.trim();
       page = 1;
@@ -486,6 +441,7 @@
     }, 300);
   });
 
+  // Sort
   $("orSort").addEventListener("change", (e) => {
     sort = e.target.value;
     page = 1;
