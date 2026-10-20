@@ -98,8 +98,27 @@
         </section>
 
         <!-- ============ ORDERS ============ -->
-        <section class="ad-view" id="view-orders">
+                <section class="ad-view" id="view-orders">
             <h1 class="ad-title">Customer Orders</h1>
+            <p class="ad-sub">Check each payment, then move the order forward. The customer is notified automatically at every step.</p>
+
+            <div class="ad-filter cs-filter">
+                <div class="ad-field">
+                    <span>Search</span>
+                    <input type="search" id="orSearch" placeholder="Order number, name, email, mobile, or GCash reference" maxlength="100">
+                    <small>Results update as you type.</small>
+                </div>
+                <div class="ad-field">
+                    <span>Sort by</span>
+                    <select id="orSort">
+                        <option value="newest" selected>Newest orders first</option>
+                        <option value="oldest">Oldest orders first (first come, first served)</option>
+                        <option value="pickup">Pickup soonest</option>
+                        <option value="highest">Highest amount</option>
+                    </select>
+                    <small>Choose who to serve first.</small>
+                </div>
+            </div>
 
             <div class="ck-bar">
                 <div class="ck-tabs" id="orTabs">
@@ -115,13 +134,14 @@
             <div class="ad-note" id="orSummary"></div>
 
             <div id="orList"></div>
+            <div class="cs-pager" id="orPager"></div>
         </section>
 
     </div>
-
 <script src="config.js"></script>
 <script src="auth.js"></script>
 <script src="toast.js"></script>
+<script src="confirm.js"></script>
 <script src="header.js"></script>
 <script src="admin.js"></script>
 <script src="cookies.js"></script>

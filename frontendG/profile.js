@@ -3,12 +3,20 @@
   const avatar = document.querySelector(".prof img");
   if (!user || !avatar) return;
 
+  avatar.classList.add("avatar-btn");
+  avatar.title = "My profile";
 
   const isAdmin = user.role === "admin";
   const MONTHS = ["January","February","March","April","May","June","July",
                   "August","September","October","November","December"];
   const PHONE_REGEX = /^(09\d{9}|\+639\d{9})$/;
   const TITLES = { view: "My Profile", edit: "Edit Profile", password: "Change Password" };
+
+  function maskEmail(email) {
+    const [name, domain] = String(email || "").split("@");
+    if (!domain) return "your email";
+    return `${name.slice(0, 2)}***@${domain}`;
+  }
 
   // ----- Build the pop-up -----
   const overlay = document.createElement("div");
@@ -48,6 +56,14 @@
 
       <div id="pfPwSec" class="hidden-pf">
         <div class="pf-row"><span>Current password</span><input type="password" id="pfCurPw" autocomplete="current-password"></div>
+        <div class="pf-row">
+          <span>Email verification code</span>
+          <div class="pf-coderow">
+            <input id="pfCode" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="6 digits">
+            <button type="button" class="pf-btn pf-ghost" id="pfSendCode">SEND CODE</button>
+          </div>
+          <small class="pf-hint" id="pfCodeHint"></small>
+        </div>
         <div class="pf-row"><span>New password</span><input type="password" id="pfNewPw" autocomplete="new-password"></div>
         <div class="pf-row"><span>Confirm new password</span><input type="password" id="pfConfPw" autocomplete="new-password"></div>
         <label class="pf-check"><input type="checkbox" id="pfShowPw"> Show passwords</label>
@@ -65,6 +81,7 @@
   let original = null;
 
   if (isAdmin) { $("pfEdit").classList.add("hidden-pf"); }
+  $("pfCodeHint").textContent = `We will send a 6-digit code to ${maskEmail(user.email)}.`;
 
   function msg(type, text) {
     const el = $("pfMsg");
@@ -90,7 +107,8 @@
       $("pfFirst").focus();
     }
     if (mode === "password") {
-      ["pfCurPw", "pfNewPw", "pfConfPw"].forEach((id) => { $(id).value = ""; $(id).type = "password"; });
+      ["pfCurPw", "pfCode", "pfNewPw", "pfConfPw"].forEach((id) => { $(id).value = ""; });
+      ["pfCurPw", "pfNewPw", "pfConfPw"].forEach((id) => { $(id).type = "password"; });
       $("pfShowPw").checked = false;
       $("pfCurPw").focus();
     }
@@ -131,6 +149,7 @@
 
   function close() { overlay.classList.remove("open"); }
 
+  avatar.addEventListener("click", () => open("view"));
   $("pfClose").addEventListener("click", close);
   overlay.addEventListener("click", (e) => { if (e.target === overlay) close(); });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
@@ -138,8 +157,8 @@
   // ----- Step buttons -----
   $("pfEdit").addEventListener("click", () => setMode("edit"));
   $("pfGoPw").addEventListener("click", () => setMode("password"));
-  $("pfCancel").addEventListener("click", () => { if (original) fill(original); close(); });
-  $("pfPwCancel").addEventListener("click", close);
+  $("pfCancel").addEventListener("click", () => { if (original) fill(original); setMode("view"); });
+  $("pfPwCancel").addEventListener("click", () => setMode("view"));
 
   // ----- Save profile -----
   $("pfSave").addEventListener("click", async () => {
@@ -171,18 +190,55 @@
     msg("success", "Profile updated successfully!");
   });
 
-  // ----- Change password -----
+  // ----- Change password (needs the emailed code) -----
   $("pfShowPw").addEventListener("change", function () {
     const t = this.checked ? "text" : "password";
     ["pfCurPw", "pfNewPw", "pfConfPw"].forEach((id) => { $(id).type = t; });
   });
+  $("pfCode").addEventListener("input", (e) => { e.target.value = e.target.value.replace(/\D/g, "").slice(0, 6); });
+
+  function startCooldown(btn, seconds) {
+    clearInterval(btn._timer);
+    let left = seconds;
+    btn.disabled = true;
+    btn.textContent = `RESEND (${left}s)`;
+    btn._timer = setInterval(() => {
+      left -= 1;
+      if (left <= 0) {
+        clearInterval(btn._timer);
+        btn.disabled = false;
+        btn.textContent = "SEND CODE";
+      } else {
+        btn.textContent = `RESEND (${left}s)`;
+      }
+    }, 1000);
+  }
+
+  $("pfSendCode").addEventListener("click", async () => {
+    const btn = $("pfSendCode");
+    msg("info", "");
+    btn.disabled = true;
+    btn.textContent = "SENDING...";
+
+    const { ok, data } = await Auth.api("/api/me/password-code", { method: "POST", body: "{}" });
+
+    if (!ok) {
+      btn.disabled = false;
+      btn.textContent = "SEND CODE";
+      return msg("error", data.error || "Could not send the code. Please try again.");
+    }
+    msg("success", data.message);
+    startCooldown(btn, data.cooldown || 60);
+  });
 
   $("pfPwSave").addEventListener("click", async () => {
     const current_password = $("pfCurPw").value;
+    const code = $("pfCode").value.trim();
     const new_password = $("pfNewPw").value;
     const confirm_password = $("pfConfPw").value;
 
-    if (!current_password || !new_password || !confirm_password) return msg("error", "Please fill in all three password fields.");
+    if (!current_password || !new_password || !confirm_password) return msg("error", "Please fill in your current password, the new password, and the confirmation.");
+    if (!/^\d{6}$/.test(code)) return msg("error", "Press SEND CODE, then enter the 6-digit code from your email.");
     if (new_password.length < 8) return msg("error", "New password must be at least 8 characters.");
     if (new_password !== confirm_password) return msg("error", "The new passwords do not match.");
     if (new_password === current_password) return msg("error", "New password must be different from the current one.");
@@ -190,13 +246,13 @@
     $("pfPwSave").disabled = true;
     const { ok, data } = await Auth.api("/api/me/password", {
       method: "PUT",
-      body: JSON.stringify({ current_password, new_password })
+      body: JSON.stringify({ current_password, new_password, code })
     });
     $("pfPwSave").disabled = false;
 
     if (!ok) return msg("error", data.error || "Could not change password.");
 
-    ["pfCurPw", "pfNewPw", "pfConfPw"].forEach((id) => { $(id).value = ""; });
+    ["pfCurPw", "pfCode", "pfNewPw", "pfConfPw"].forEach((id) => { $(id).value = ""; });
     msg("success", "Password changed successfully!");
   });
 })();

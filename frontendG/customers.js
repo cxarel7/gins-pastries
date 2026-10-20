@@ -32,13 +32,25 @@
   overlay.innerHTML = `
     <div class="pf-box cs-box" role="dialog" aria-modal="true" aria-labelledby="csDName">
       <button type="button" class="pf-close" id="csClose" aria-label="Close">✕</button>
-      <div class="pf-info" id="csDetail"></div>
+      <div class="cs-detail" id="csDetail"></div>
     </div>`;
   document.body.appendChild(overlay);
   function closeDetail() { overlay.classList.remove("open"); }
   $("csClose").addEventListener("click", closeDetail);
   overlay.addEventListener("click", (e) => { if (e.target === overlay) closeDetail(); });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeDetail(); });
+
+  function row(label, value) {
+    const wrap = el("div", "cs-row");
+    wrap.append(el("span", "cs-key", label), el("span", "cs-val", value));
+    return wrap;
+  }
+
+  function stat(label, value) {
+    const s = el("div", "cs-stat");
+    s.append(el("b", "", String(value)), el("span", "", label));
+    return s;
+  }
 
   async function openDetail(id) {
     overlay.classList.add("open");
@@ -47,37 +59,53 @@
     if (!ok) return $("csDetail").replaceChildren(el("div", "ad-empty", data.error || "Could not load this customer."));
 
     const c = data.customer;
+    const s = data.stats || { order_count: data.orders.length, completed: 0, total_spent: 0 };
     const box = $("csDetail");
-    const name = el("div", "pf-vname", c.name);
-    name.id = "csDName";
-    box.replaceChildren(
-      name,
-      el("div", "pf-vline", c.email),
-      el("div", "pf-vline", c.contact ? `Mobile: ${c.contact}` : "No mobile number on file"),
-      el("div", "pf-vline", c.facebook ? `Facebook: ${c.facebook}` : ""),
-      el("div", "pf-vline pf-muted", `Registered ${fmtDate(c.created_at)}`)
-    );
 
-    box.appendChild(el("h4", "cs-sub", `Order history (${data.orders.length})`));
+    // Header and contact details
+    const head = el("div", "cs-head");
+    const name = el("div", "cs-name", c.name);
+    name.id = "csDName";
+    head.appendChild(name);
+    head.appendChild(row("Email", c.email));
+    head.appendChild(row("Mobile", c.contact || "Not provided"));
+    if (c.facebook) head.appendChild(row("Facebook", c.facebook));
+    head.appendChild(row("Registered", fmtDate(c.created_at)));
+
+    // Numbers
+    const stats = el("div", "cs-stats");
+    stats.append(stat("Orders", s.order_count), stat("Completed", s.completed), stat("Total spent", peso(s.total_spent)));
+
+    // Scrollable order history
+    const title = el("h4", "cs-sub", `Order history (${s.order_count})`);
+    const history = el("div", "cs-history");
+    history.tabIndex = 0;
+    history.setAttribute("aria-label", "Order history, scrollable");
+
     if (data.orders.length === 0) {
-      box.appendChild(el("div", "pf-vline pf-muted", "This customer has not placed any orders yet."));
-      return;
+      history.appendChild(el("div", "cs-none", "This customer has not placed any orders yet."));
+    } else {
+      data.orders.forEach((o) => {
+        const card = el("div", "cs-order");
+        const top = el("div", "cs-order-top");
+        top.append(
+          el("strong", "", `Order #${o.order_id}`),
+          el("span", `ord-status st-${o.status}`, o.status === "Ready" ? "Ready for Pickup" : o.status)
+        );
+        const items = o.items.map((i) => `${i.product_name} × ${i.quantity}`).join(", ");
+        card.append(
+          top,
+          el("div", "cs-order-line", items),
+          el("div", "cs-order-line cs-muted", `Pickup ${o.pickup_date} at ${fmtTime(o.pickup_time)}  |  ${peso(o.total_amount)}`)
+        );
+        history.appendChild(card);
+      });
+      if (s.order_count > data.orders.length) {
+        history.appendChild(el("div", "cs-none", `Showing the latest ${data.orders.length} of ${s.order_count} orders.`));
+      }
     }
-    data.orders.forEach((o) => {
-      const row = el("div", "cs-order");
-      const top = el("div", "cs-order-top");
-      top.append(
-        el("strong", "", `Order #${o.order_id}`),
-        el("span", `ord-status st-${o.status}`, o.status === "Ready" ? "Ready for Pickup" : o.status)
-      );
-      const items = o.items.map((i) => `${i.product_name} × ${i.quantity}`).join(", ");
-      row.append(
-        top,
-        el("div", "cs-order-line", items),
-        el("div", "cs-order-line", `Pickup ${o.pickup_date} at ${fmtTime(o.pickup_time)}  |  ${peso(o.total_amount)}`)
-      );
-      box.appendChild(row);
-    });
+
+    box.replaceChildren(head, stats, title, history);
   }
 
   // ---------- Table ----------
@@ -122,7 +150,6 @@
     scroller.appendChild(table);
     box.replaceChildren(scroller);
 
-    // Pager
     const pager = $("csPager");
     pager.replaceChildren();
     if (data.pages > 1) {

@@ -40,12 +40,20 @@ function wrap(title, bodyHtml) {
   </div>`;
 }
 
+const TITLES = {
+  register: 'Verify your email',
+  reset: 'Reset your password',
+  change: 'Confirm your password change'
+};
+const INTROS = {
+  register: "Use this code to finish creating your Gin's Pastries account.",
+  reset: "Use this code to reset your Gin's Pastries password.",
+  change: "Use this code to confirm the password change on your Gin's Pastries account."
+};
+
 function codeEmail(code, purpose, minutes) {
-  const reset = purpose === 'reset';
-  const title = reset ? 'Reset your password' : 'Verify your email';
-  const intro = reset
-    ? "Use this code to reset your Gin's Pastries password."
-    : "Use this code to finish creating your Gin's Pastries account.";
+  const title = TITLES[purpose] || TITLES.register;
+  const intro = INTROS[purpose] || INTROS.register;
   const html = wrap(title, `
     <p style="margin:0 0 16px">${intro}</p>
     <div style="background:#fff;border-radius:16px;padding:14px;text-align:center;font-size:34px;font-weight:bold;letter-spacing:8px">${code}</div>

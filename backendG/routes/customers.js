@@ -113,7 +113,20 @@ router.get('/:id', async (req, res) => {
       );
     }
 
+    const [[stats]] = await pool.query(
+      `SELECT COUNT(*) AS order_count,
+              COALESCE(SUM(CASE WHEN status = 'Completed' THEN total_amount END), 0) AS total_spent,
+              COALESCE(SUM(status = 'Completed'), 0) AS completed
+       FROM orders WHERE user_id = ?`,
+      [id]
+    );
+
     res.json({
+      stats: {
+        order_count: Number(stats.order_count),
+        completed: Number(stats.completed),
+        total_spent: Number(stats.total_spent)
+      },
       customer: users[0],
       orders: orders.map(o => ({
         ...o,

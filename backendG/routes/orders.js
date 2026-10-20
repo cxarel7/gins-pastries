@@ -6,6 +6,7 @@ const router = express.Router();
 
 const MAX_ITEMS = 20;
 const MAX_QTY_PER_COOKIE = 50;
+const PAGE_SIZE = 10;
 const TZ = 'Asia/Manila';
 
 const STATUSES = ['Pending', 'Confirmed', 'Preparing', 'Ready', 'Completed', 'Cancelled'];
@@ -31,6 +32,14 @@ const NOTIFY = {
 
 const CUSTOMER_COLS =
   'u.name AS customer_name, u.email AS customer_email, u.contact AS customer_contact, u.facebook AS customer_facebook';
+
+// Only these fixed pieces of SQL are ever used for sorting
+const SORTS = {
+  newest:  'o.order_date DESC, o.order_id DESC',
+  oldest:  'o.order_date ASC, o.order_id ASC',
+  pickup:  'o.pickup_date ASC, o.pickup_time ASC, o.order_id ASC',
+  highest: 'o.total_amount DESC, o.order_id DESC'
+};
 
 function parseId(value) {
   const id = Number(value);
@@ -82,7 +91,8 @@ router.post('/orders', verifyToken, async (req, res) => {
     return res.status(403).json({ error: 'Only customers can place orders.' });
   }
 
-    const { pickup_date, pickup_time, items, payment_reference } = req.body || {};
+  const { pickup_date, pickup_time, items, payment_reference } = req.body || {};
+
   if (!pickup_date || !pickup_time) {
     return res.status(400).json({ error: 'Pickup date and pickup time are required.' });
   }
@@ -100,9 +110,9 @@ router.post('/orders', verifyToken, async (req, res) => {
     return res.status(400).json({ error: 'Pickup date and time must be in the future.' });
   }
 
-    const payRef = String(payment_reference || '').trim();
+  const payRef = String(payment_reference || '').trim();
   if (!/^\d{10,13}$/.test(payRef)) {
-    return res.status(400).json({ error: 'Please enter your reference number (10 to 13 digits).' });
+    return res.status(400).json({ error: 'Please enter your GCash reference number (10 to 13 digits).' });
   }
 
   if (!Array.isArray(items) || items.length === 0) {
@@ -168,7 +178,7 @@ router.post('/orders', verifyToken, async (req, res) => {
     total = Math.round(total * 100) / 100;
 
     const [orderResult] = await conn.query(
-        `INSERT INTO orders (user_id, pickup_date, pickup_time, total_amount, payment_reference, status)
+      `INSERT INTO orders (user_id, pickup_date, pickup_time, total_amount, payment_reference, status)
        VALUES (?, ?, ?, ?, ?, 'Pending')`,
       [req.user.user_id, pDate, `${pTime}:00`, total, payRef]
     );
@@ -192,7 +202,7 @@ router.post('/orders', verifyToken, async (req, res) => {
     res.status(201).json({ message: 'Order placed.', order });
   } catch (err) {
     await conn.rollback();
-        if (err.code === 'ER_DUP_ENTRY') {
+    if (err.code === 'ER_DUP_ENTRY') {
       return res.status(409).json({ error: 'That reference number was already used for another order.' });
     }
     console.error('Place order error:', err);
@@ -216,30 +226,62 @@ router.get('/my-orders', verifyToken, async (req, res) => {
   }
 });
 
-// GET /api/orders?status=Pending  (admin only: all customers' orders)
+// GET /api/orders?status=&search=&sort=newest&page=1  (admin only)
 router.get('/orders', verifyToken, requireAdmin, async (req, res) => {
   try {
     const status = req.query.status;
     if (status && !STATUSES.includes(status)) {
       return res.status(400).json({ error: `Status must be one of: ${STATUSES.join(', ')}.` });
     }
-
-    const params = [];
-    let where = '';
-    if (status) {
-      where = 'WHERE o.status = ?';
-      params.push(status);
+    const sort = req.query.sort || 'newest';
+    if (!SORTS[sort]) {
+      return res.status(400).json({ error: "Sort must be 'newest', 'oldest', 'pickup', or 'highest'." });
     }
+    const page = req.query.page === undefined ? 1 : Number(req.query.page);
+    if (!Number.isInteger(page) || page < 1) {
+      return res.status(400).json({ error: 'Page must be 1 or higher.' });
+    }
+    const search = String(req.query.search || '').trim().replace(/^#/, '').slice(0, 100).toLowerCase();
+
+    const conds = [];
+    const params = [];
+    if (status) { conds.push('o.status = ?'); params.push(status); }
+    if (search) {
+      const like = `%${search.replace(/[\\%_]/g, '\\$&')}%`;
+      const parts = [];
+      const sp = [];
+      if (/^\d{1,9}$/.test(search)) { parts.push('o.order_id = ?'); sp.push(Number(search)); }
+      parts.push('LOWER(u.name) LIKE ?', 'LOWER(u.email) LIKE ?', 'LOWER(u.contact) LIKE ?', 'o.payment_reference LIKE ?');
+      sp.push(like, like, like, like);
+      conds.push(`(${parts.join(' OR ')})`);
+      params.push(...sp);
+    }
+    const where = conds.length ? `WHERE ${conds.join(' AND ')}` : '';
+
+    const [[countRow]] = await pool.query(
+      `SELECT COUNT(*) AS total FROM orders o JOIN users u ON u.user_id = o.user_id ${where}`,
+      params
+    );
+    const total = Number(countRow.total);
+    const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
     const [orders] = await pool.query(
       `SELECT o.*, ${CUSTOMER_COLS}
        FROM orders o
        JOIN users u ON u.user_id = o.user_id
        ${where}
-       ORDER BY o.order_date DESC, o.order_id DESC`,
-      params
+       ORDER BY ${SORTS[sort]}
+       LIMIT ? OFFSET ?`,
+      [...params, PAGE_SIZE, (page - 1) * PAGE_SIZE]
     );
-    res.json(await attachItems(orders));
+
+    // Number of orders per status, for the tab labels
+    const [statusRows] = await pool.query('SELECT status, COUNT(*) AS n FROM orders GROUP BY status');
+    const counts = { all: 0 };
+    STATUSES.forEach((s) => { counts[s] = 0; });
+    statusRows.forEach((r) => { counts[r.status] = Number(r.n); counts.all += Number(r.n); });
+
+    res.json({ orders: await attachItems(orders), counts, total, page, pages, limit: PAGE_SIZE });
   } catch (err) {
     console.error('List orders error:', err);
     res.status(500).json({ error: 'Server error. Please try again.' });

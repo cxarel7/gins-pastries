@@ -190,7 +190,14 @@
 
   async function toggleArchive(p) {
     const archiving = p.status !== "archived";
-    if (archiving && !confirm(`Archive "${p.product_name}"? Customers will no longer see it. You can restore it later.`)) return;
+    if (archiving) {
+      const r = await Confirm.ask({
+        title: "Archive this cookie?",
+        message: `"${p.product_name}" will be hidden from customers. You can restore it later.`,
+        yes: "Yes, archive", no: "Keep it"
+      });
+      if (!r) return;
+    }
     if (busy) return;
     busy = true;
     const { ok, data } = archiving
