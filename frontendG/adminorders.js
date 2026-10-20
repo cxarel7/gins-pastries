@@ -202,7 +202,15 @@ if (mine !== seq) return;
 const data = Array.isArray(responseData)
   ? {
       orders: responseData,
-      counts: {},
+      counts: responseData.reduce((counts, order) => {
+        counts.all = (counts.all || 0) + 1;
+
+        if (order.status) {
+          counts[order.status] = (counts[order.status] || 0) + 1;
+        }
+
+        return counts;
+      }, {}),
       total: responseData.length,
       page: 1,
       pages: 1
