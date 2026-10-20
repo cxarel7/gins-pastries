@@ -201,7 +201,9 @@ if (mine !== seq) return;
 // Support either an array or the expected object response.
 const data = Array.isArray(responseData)
   ? {
-      orders: responseData,
+      orders: responseData.filter(order =>
+        !filter || order.status === filter
+      ),
       counts: responseData.reduce((counts, order) => {
         counts.all = (counts.all || 0) + 1;
 
@@ -211,12 +213,14 @@ const data = Array.isArray(responseData)
 
         return counts;
       }, {}),
-      total: responseData.length,
+      total: responseData.filter(order =>
+        !filter || order.status === filter
+      ).length,
       page: 1,
       pages: 1
     }
   : responseData;
-
+  
 if (!ok || !data || !Array.isArray(data.orders)) {
   console.error("Invalid orders response:", responseData);
 
