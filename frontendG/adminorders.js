@@ -187,110 +187,106 @@
   }
 
   
-  async function load() {
-    const mine = ++seq;
+ 
+async function load() {
+  const mine = ++seq;
 
-    $("orList").replaceChildren(
-      el("div", "ad-empty", "Loading orders...")
-    );
+  $("orList").replaceChildren(
+    el("div", "ad-empty", "Loading orders...")
+  );
 
-    try {
-      const q = new URLSearchParams({
-        sort,
-        page: String(page),
-        search
-      });
+  try {
+    const q = new URLSearchParams({
+      sort,
+      page: String(page),
+      search
+    });
 
-      if (filter) q.set("status", filter);
+    if (filter) q.set("status", filter);
 
-      const response = await Auth.api(`/api/orders?${q.toString()}`);
+    const response = await Auth.api(`/api/orders?${q.toString()}`);
 
-      if (mine !== seq) return;
+    if (mine !== seq) return;
 
-      const { ok, data } = response || {};
+    let { ok, data } = response || {};
 
-      if (!ok) {
-        const retry = el("button", "ad-btn", "Try again");
-        retry.type = "button";
-        retry.addEventListener("click", load);
-
-        $("orList").replaceChildren(
-          el("div", "ad-empty", data?.error || "Could not load the orders."),
-          retry
-        );
-        $("orPager").replaceChildren();
-        return;
-      }
-
-      // Prevent errors if the API response is missing the orders array.
-      if (!data || !Array.isArray(data.orders)) {
-        console.error("Unexpected /api/orders response:", data);
-
-        $("orList").replaceChildren(
-          el(
-            "div",
-            "ad-empty",
-            "Could not display orders. The server response is missing the orders list. Please check the backend API."
-          )
-        );
-        $("orPager").replaceChildren();
-        return;
-      }
-
-      const totalPages = Math.max(1, Number(data.pages) || 1);
-
-      // Return to a valid page if the current page no longer exists.
-      if (page > totalPages) {
-        page = totalPages;
-        return load();
-      }
-
-      renderTabs(data.counts || {});
-
-      $("orSummary").textContent =
-        `${Number(data.total) || 0} order(s) shown` +
-        (search ? ` matching "${search}"` : "");
-
-      if (data.orders.length === 0) {
-        $("orList").replaceChildren(
-          el(
-            "div",
-            "ad-empty",
-            search
-              ? "No orders match your search."
-              : "No orders here yet."
-          )
-        );
-        $("orPager").replaceChildren();
-        return;
-      }
-
-      $("orList").replaceChildren(...data.orders.map(card));
-
-      renderPager({
-        ...data,
-        pages: totalPages
-      });
-    } catch (error) {
-      if (mine !== seq) return;
-
-      console.error("Failed to load orders:", error);
-
+    if (!ok) {
       const retry = el("button", "ad-btn", "Try again");
       retry.type = "button";
       retry.addEventListener("click", load);
 
       $("orList").replaceChildren(
-        el(
-          "div",
-          "ad-empty",
-          "Unable to connect to the server. Please try again."
-        ),
+        el("div", "ad-empty", data?.error || "Could not load the orders."),
         retry
       );
       $("orPager").replaceChildren();
+      return;
     }
+
+    // Support APIs that return an array directly.
+    if (Array.isArray(data)) {
+      data = {
+        orders: data,
+        total: data.length,
+        pages: 1,
+        counts: {}
+      };
+    }
+
+    if (!data || !Array.isArray(data.orders)) {
+      console.error("Unexpected /api/orders response:", data);
+
+      $("orList").replaceChildren(
+        el("div", "ad-empty", "The server returned orders in an unexpected format. Please check the backend.")
+      );
+      $("orPager").replaceChildren();
+      return;
+    }
+
+    if (page > (Number(data.pages) || 1)) {
+      page = Math.max(1, Number(data.pages) || 1);
+      return load();
+    }
+
+    renderTabs(data.counts || {});
+
+    $("orSummary").textContent =
+      `${Number(data.total ?? data.orders.length)} order(s) shown` +
+      (search ? ` matching "${search}"` : "");
+
+    if (data.orders.length === 0) {
+      $("orList").replaceChildren(
+        el(
+          "div",
+          "ad-empty",
+          search ? "No orders match your search." : "No orders here yet."
+        )
+      );
+      $("orPager").replaceChildren();
+      return;
+    }
+
+    $("orList").replaceChildren(...data.orders.map(card));
+    renderPager({
+      ...data,
+      pages: Number(data.pages) || 1
+    });
+  } catch (error) {
+    if (mine !== seq) return;
+
+    console.error("Failed to load orders:", error);
+
+    const retry = el("button", "ad-btn", "Try again");
+    retry.type = "button";
+    retry.addEventListener("click", load);
+
+    $("orList").replaceChildren(
+      el("div", "ad-empty", "Unable to connect to the server. Please try again."),
+      retry
+    );
+    $("orPager").replaceChildren();
   }
+}
 
   // ---------- Controls ----------
   $("orTabs").addEventListener("click", (e) => {
