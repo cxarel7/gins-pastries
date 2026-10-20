@@ -193,7 +193,11 @@
     const q = new URLSearchParams({ sort, page: String(page), search });
     if (filter) q.set("status", filter);
     const { ok, data } = await Auth.api(`/api/orders?${q.toString()}`);
-    if (mine !== seq) return;
+
+console.log("Orders API response:", data);
+console.log("Is data an array?", Array.isArray(data));
+
+if (mine !== seq) return;
 
     if (!ok) {
       const b = el("button", "ad-btn", "Try again");
